@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Objects;
 
 public final class MyAppClient {
 
@@ -18,13 +19,15 @@ public final class MyAppClient {
     private final ObjectMapper objectMapper;
 
     public MyAppClient(URI baseUri) {
-        this(baseUri, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(), new ObjectMapper());
+        this(Objects.requireNonNull(baseUri, "baseUri must not be null"),
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build(),
+                new ObjectMapper());
     }
 
     public MyAppClient(URI baseUri, HttpClient httpClient, ObjectMapper objectMapper) {
-        this.baseUri = baseUri;
-        this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
+        this.baseUri = Objects.requireNonNull(baseUri, "baseUri must not be null");
+        this.httpClient = Objects.requireNonNull(httpClient, "httpClient must not be null");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper must not be null");
     }
 
     public RegisterCustomerResponse registerCustomer(RegisterCustomerRequest request) {

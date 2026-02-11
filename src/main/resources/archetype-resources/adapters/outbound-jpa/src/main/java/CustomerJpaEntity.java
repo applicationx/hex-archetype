@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -25,9 +26,9 @@ public class CustomerJpaEntity {
     }
 
     public CustomerJpaEntity(UUID id, String email, Instant registeredAt) {
-        this.id = id;
-        this.email = email;
-        this.registeredAt = registeredAt;
+        this.id = Objects.requireNonNull(id, "id must not be null");
+        this.email = Objects.requireNonNull(email, "email must not be null");
+        this.registeredAt = Objects.requireNonNull(registeredAt, "registeredAt must not be null");
     }
 
     public UUID getId() {

@@ -57,7 +57,7 @@ mvn -B -ntp verify
 
 ## Current Limitations
 
-- Defaults are opinionated (Spring MVC + JPA + MapStruct); not all teams need this stack.
+- Defaults are opinionated (Spring MVC + JPA + explicit converter/factory mapping); not all teams need this stack.
 - Generated project enforces modern toolchain versions (Maven 4 / Java 25).
 - Testcontainers integration test is a skeleton (`contextLoads`) and needs real assertions.
 - No built-in deployment profile (Nexus/Artifactory/Central) in generated output yet.
