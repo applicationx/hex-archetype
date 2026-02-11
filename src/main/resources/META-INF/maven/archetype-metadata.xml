@@ -1,0 +1,156 @@
+<archetype-descriptor
+  xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.2.0 https://maven.apache.org/xsd/archetype-descriptor-1.2.0.xsd"
+  name="hexagonal-spring-boot-multi-module">
+
+  <requiredProperties>
+    <requiredProperty key="javaVersion">
+      <defaultValue>25</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="springBootVersion">
+      <defaultValue>4.0.2</defaultValue>
+    </requiredProperty>
+  </requiredProperties>
+
+  <fileSets>
+    <fileSet filtered="true" packaged="false">
+      <directory>.</directory>
+      <includes>
+        <include>pom.xml</include>
+        <include>README.md</include>
+        <include>.gitignore</include>
+        <include>.github/workflows/**</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+
+  <modules>
+    <module name="domain" id="${artifactId}-domain" dir="domain">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory>.</directory>
+          <includes>
+            <include>pom.xml</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/test/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module name="application" id="${artifactId}-application" dir="application">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory>.</directory>
+          <includes>
+            <include>pom.xml</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/test/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module name="inbound-rest" id="${artifactId}-adapter-inbound-rest" dir="adapters/inbound-rest">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory>.</directory>
+          <includes>
+            <include>pom.xml</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module name="outbound-jpa" id="${artifactId}-adapter-outbound-jpa" dir="adapters/outbound-jpa">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory>.</directory>
+          <includes>
+            <include>pom.xml</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module name="webapp" id="${artifactId}-webapp" dir="webapp">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory>.</directory>
+          <includes>
+            <include>pom.xml</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="false">
+          <directory>src/main/resources</directory>
+          <includes>
+            <include>**/*</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/test/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module name="client" id="${artifactId}-client" dir="client">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory>.</directory>
+          <includes>
+            <include>pom.xml</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+  </modules>
+</archetype-descriptor>
