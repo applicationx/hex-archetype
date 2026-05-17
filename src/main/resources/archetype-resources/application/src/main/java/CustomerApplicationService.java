@@ -2,6 +2,8 @@ package ${package}.application.service;
 
 import ${package}.application.command.RegisterCustomerCommand;
 import ${package}.application.exception.CustomerAlreadyExistsException;
+import ${package}.application.exception.CustomerNotFoundException;
+import ${package}.application.port.in.GetCustomerUseCase;
 import ${package}.application.port.in.RegisterCustomerUseCase;
 import ${package}.application.port.out.CustomerRepository;
 import ${package}.application.port.out.DomainEventPublisher;
@@ -12,7 +14,7 @@ import ${package}.domain.model.EmailAddress;
 
 import java.util.Objects;
 
-public final class CustomerApplicationService implements RegisterCustomerUseCase {
+public final class CustomerApplicationService implements RegisterCustomerUseCase, GetCustomerUseCase {
 
     private final CustomerRepository customerRepository;
     private final DomainEventPublisher domainEventPublisher;
@@ -36,5 +38,11 @@ public final class CustomerApplicationService implements RegisterCustomerUseCase
         domainEventPublisher.publish(new CustomerRegistered(saved.id(), saved.email(), saved.registeredAt()));
 
         return saved.id();
+    }
+
+    @Override
+    public Customer getCustomer(CustomerId customerId) {
+        return customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId.value()));
     }
 }

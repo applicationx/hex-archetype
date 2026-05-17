@@ -29,7 +29,7 @@ spring:
     show-sql: false
 customer:
   registration:
-    topic: customer-registration-commands
+    topic: customer-registered-events
     kafka:
       enabled: false
 springdoc:

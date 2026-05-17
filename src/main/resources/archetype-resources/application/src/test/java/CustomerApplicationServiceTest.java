@@ -5,6 +5,7 @@ import ${package}.application.port.out.CustomerRepository;
 import ${package}.application.port.out.DomainEventPublisher;
 import ${package}.domain.event.CustomerRegistered;
 import ${package}.domain.model.Customer;
+import ${package}.domain.model.CustomerId;
 import ${package}.domain.model.EmailAddress;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +40,13 @@ class CustomerApplicationServiceTest {
 
     static final class InMemoryCustomerRepository implements CustomerRepository {
         private final Map<String, Customer> data = new HashMap<>();
+
+        @Override
+        public Optional<Customer> findById(CustomerId customerId) {
+            return data.values().stream()
+                    .filter(customer -> customer.id().equals(customerId))
+                    .findFirst();
+        }
 
         @Override
         public Optional<Customer> findByEmail(EmailAddress email) {

@@ -4,6 +4,7 @@ import ${package}.adapters.outbound.jpa.converter.CustomerJpaConverter;
 import ${package}.adapters.outbound.jpa.repository.SpringDataCustomerJpaRepository;
 import ${package}.application.port.out.CustomerRepository;
 import ${package}.domain.model.Customer;
+import ${package}.domain.model.CustomerId;
 import ${package}.domain.model.EmailAddress;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +18,11 @@ public class CustomerRepositoryJpaAdapter implements CustomerRepository {
 
     public CustomerRepositoryJpaAdapter(SpringDataCustomerJpaRepository jpaRepository) {
         this.jpaRepository = Objects.requireNonNull(jpaRepository, "jpaRepository must not be null");
+    }
+
+    @Override
+    public Optional<Customer> findById(CustomerId customerId) {
+        return jpaRepository.findById(customerId.value()).map(CustomerJpaConverter::toDomain);
     }
 
     @Override

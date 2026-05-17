@@ -1,6 +1,7 @@
 package ${package}.adapters.inbound.rest.error;
 
 import ${package}.application.exception.CustomerAlreadyExistsException;
+import ${package}.application.exception.CustomerNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,6 +19,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         problem.setTitle("Customer already exists");
         problem.setType(URI.create("https://errors.appx.local/customer-already-exists"));
         problem.setProperty("email", exception.email());
+        return problem;
+    }
+
+    @ExceptionHandler(CustomerNotFoundException.class)
+    ProblemDetail handleCustomerNotFound(CustomerNotFoundException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Customer was not found.");
+        problem.setTitle("Customer not found");
+        problem.setType(URI.create("https://errors.appx.local/customer-not-found"));
+        problem.setProperty("customerId", exception.customerId());
         return problem;
     }
 

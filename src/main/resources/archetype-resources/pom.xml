@@ -33,6 +33,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+    <maven.jar.plugin.version>3.5.0</maven.jar.plugin.version>
     <maven.resources.plugin.version>3.4.0</maven.resources.plugin.version>
     <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
     <maven.failsafe.plugin.version>3.5.4</maven.failsafe.plugin.version>
@@ -94,6 +95,12 @@
             <release>${d}{java.version}</release>
             <parameters>true</parameters>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${d}{maven.jar.plugin.version}</version>
         </plugin>
 
         <plugin>

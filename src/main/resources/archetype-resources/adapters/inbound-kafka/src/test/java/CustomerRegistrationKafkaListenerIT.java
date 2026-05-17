@@ -1,16 +1,15 @@
 #set($d = '$')
 package ${package}.adapters.inbound.kafka.listener;
 
-import ${package}.adapters.inbound.kafka.message.RegisterCustomerKafkaMessage;
-import ${package}.application.command.RegisterCustomerCommand;
-import ${package}.application.port.in.RegisterCustomerUseCase;
-import ${package}.domain.model.CustomerId;
+import ${package}.adapters.inbound.kafka.message.CustomerRegisteredKafkaMessage;
+import ${package}.client.http.MyAppClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -27,37 +26,45 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 @SpringBootTest(
         classes = {
                 CustomerRegistrationKafkaListenerIT.TestApplication.class,
-                CustomerRegistrationKafkaListenerIT.TestUseCaseConfig.class
+                CustomerRegistrationKafkaListenerIT.TestKafkaConfig.class
         },
         properties = {
                 "customer.registration.kafka.enabled=true",
-                "customer.registration.topic=customer-registration-commands",
+                "customer.registration.topic=customer-registered-events",
                 "spring.kafka.consumer.group-id=${rootArtifactId}-inbound-kafka-test",
                 "spring.kafka.consumer.auto-offset-reset=earliest",
                 "spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer",
                 "spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JacksonJsonDeserializer",
                 "spring.kafka.consumer.properties.spring.json.trusted.packages=${package}.adapters.inbound.kafka.message",
-                "spring.kafka.consumer.properties.spring.json.value.default.type=${package}.adapters.inbound.kafka.message.RegisterCustomerKafkaMessage",
+                "spring.kafka.consumer.properties.spring.json.value.default.type=${package}.adapters.inbound.kafka.message.CustomerRegisteredKafkaMessage",
                 "spring.kafka.consumer.properties.spring.json.use.type.headers=false",
                 "spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer",
                 "spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JacksonJsonSerializer",
                 "spring.kafka.producer.properties.spring.json.add.type.headers=false"
         })
 @Testcontainers
+@EnableWireMock(@ConfigureWireMock(baseUrlProperties = "${rootArtifactId}.client.url"))
 class CustomerRegistrationKafkaListenerIT {
+
+    private static final UUID CUSTOMER_ID = UUID.fromString("018f35f8-3b8f-7a8b-8f7d-4c0d2e9d7c2a");
 
     @Container
     static final KafkaContainer kafka =
@@ -69,43 +76,43 @@ class CustomerRegistrationKafkaListenerIT {
     }
 
     @Autowired
-    private KafkaTemplate<String, RegisterCustomerKafkaMessage> kafkaTemplate;
-
-    @Autowired
-    private RecordingRegisterCustomerUseCase registerCustomerUseCase;
+    private KafkaTemplate<String, CustomerRegisteredKafkaMessage> kafkaTemplate;
 
     @Test
-    void listenerConsumesCustomerRegistrationCommandFromKafka() throws InterruptedException {
-        kafkaTemplate.send("customer-registration-commands", new RegisterCustomerKafkaMessage("user@appx-labs.com"));
+    void listenerConsumesCustomerRegisteredEventAndFetchesCustomerPayload() throws InterruptedException {
+        stubFor(com.github.tomakehurst.wiremock.client.WireMock.get(urlEqualTo("/api/v1/customers/" + CUSTOMER_ID))
+                .willReturn(okJson("""
+                        {
+                          "customerId": "018f35f8-3b8f-7a8b-8f7d-4c0d2e9d7c2a",
+                          "email": "user@appx-labs.com",
+                          "registeredAt": "2026-05-17T21:30:00Z"
+                        }
+                        """)));
+
+        kafkaTemplate.send("customer-registered-events", new CustomerRegisteredKafkaMessage(CUSTOMER_ID));
         kafkaTemplate.flush();
 
-        var command = registerCustomerUseCase.commands.poll(20, TimeUnit.SECONDS);
-
-        assertThat(command).isEqualTo(new RegisterCustomerCommand("user@appx-labs.com"));
+        assertThat(awaitCustomerPayloadRequest()).isTrue();
     }
 
     @SpringBootApplication
     @EnableKafka
+    @EnableFeignClients(basePackageClasses = MyAppClient.class)
     static class TestApplication {
     }
 
     @TestConfiguration
-    static class TestUseCaseConfig {
+    static class TestKafkaConfig {
 
         @Bean
-        RecordingRegisterCustomerUseCase registerCustomerUseCase() {
-            return new RecordingRegisterCustomerUseCase();
-        }
-
-        @Bean
-        ConsumerFactory<String, RegisterCustomerKafkaMessage> consumerFactory(
+        ConsumerFactory<String, CustomerRegisteredKafkaMessage> consumerFactory(
                 @Value("${d}{spring.kafka.bootstrap-servers}") String bootstrapServers
         ) {
             Map<String, Object> properties = new HashMap<>();
             properties.put("bootstrap.servers", bootstrapServers);
             properties.put("group.id", "${rootArtifactId}-inbound-kafka-test");
             properties.put("auto.offset.reset", "earliest");
-            var valueDeserializer = new JacksonJsonDeserializer<>(RegisterCustomerKafkaMessage.class);
+            var valueDeserializer = new JacksonJsonDeserializer<>(CustomerRegisteredKafkaMessage.class);
             valueDeserializer.addTrustedPackages("${package}.adapters.inbound.kafka.message");
             valueDeserializer.setUseTypeHeaders(false);
             return new DefaultKafkaConsumerFactory<>(
@@ -116,16 +123,16 @@ class CustomerRegistrationKafkaListenerIT {
         }
 
         @Bean
-        ConcurrentKafkaListenerContainerFactory<String, RegisterCustomerKafkaMessage> kafkaListenerContainerFactory(
-                ConsumerFactory<String, RegisterCustomerKafkaMessage> consumerFactory
+        ConcurrentKafkaListenerContainerFactory<String, CustomerRegisteredKafkaMessage> kafkaListenerContainerFactory(
+                ConsumerFactory<String, CustomerRegisteredKafkaMessage> consumerFactory
         ) {
-            var factory = new ConcurrentKafkaListenerContainerFactory<String, RegisterCustomerKafkaMessage>();
+            var factory = new ConcurrentKafkaListenerContainerFactory<String, CustomerRegisteredKafkaMessage>();
             factory.setConsumerFactory(consumerFactory);
             return factory;
         }
 
         @Bean
-        ProducerFactory<String, RegisterCustomerKafkaMessage> producerFactory(
+        ProducerFactory<String, CustomerRegisteredKafkaMessage> producerFactory(
                 @Value("${d}{spring.kafka.bootstrap-servers}") String bootstrapServers
         ) {
             Map<String, Object> properties = new HashMap<>();
@@ -137,21 +144,28 @@ class CustomerRegistrationKafkaListenerIT {
         }
 
         @Bean
-        KafkaTemplate<String, RegisterCustomerKafkaMessage> kafkaTemplate(
-                ProducerFactory<String, RegisterCustomerKafkaMessage> producerFactory
+        KafkaTemplate<String, CustomerRegisteredKafkaMessage> kafkaTemplate(
+                ProducerFactory<String, CustomerRegisteredKafkaMessage> producerFactory
         ) {
             return new KafkaTemplate<>(producerFactory);
         }
     }
 
-    static final class RecordingRegisterCustomerUseCase implements RegisterCustomerUseCase {
-
-        private final BlockingQueue<RegisterCustomerCommand> commands = new LinkedBlockingQueue<>();
-
-        @Override
-        public CustomerId register(RegisterCustomerCommand command) {
-            commands.add(command);
-            return new CustomerId(UUID.fromString("018f35f8-3b8f-7a8b-8f7d-4c0d2e9d7c2a"));
+    private boolean awaitCustomerPayloadRequest() throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
+        AssertionError lastError = null;
+        while (System.nanoTime() < deadline) {
+            try {
+                verify(getRequestedFor(urlEqualTo("/api/v1/customers/" + CUSTOMER_ID)));
+                return true;
+            } catch (AssertionError error) {
+                lastError = error;
+                TimeUnit.MILLISECONDS.sleep(250);
+            }
         }
+        if (lastError != null) {
+            throw lastError;
+        }
+        return false;
     }
 }

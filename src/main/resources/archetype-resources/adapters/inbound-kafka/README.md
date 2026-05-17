@@ -2,15 +2,16 @@
 
 **Purpose**
 
-This module receives Kafka records and invokes application use cases. It is an inbound adapter, so it adapts an external transport into the application boundary.
+This module receives Kafka records and invokes application-facing behavior. It is an inbound adapter, so it adapts an external transport into the application boundary.
 
 **Owns**
 
 - Kafka listener methods and listener-specific annotations.
 - Kafka message DTOs that represent the wire payload consumed from Kafka.
-- Converters from Kafka message DTOs into application commands.
+- Converters from Kafka message DTOs into domain-facing identifiers or application commands.
+- Kafka publication bridge from the application `CustomerRegistered` domain event to the `customer-registered-events` topic when Kafka is enabled.
 - Testcontainers-based Kafka smoke tests for listener wiring.
-- WireMock-backed tests when Kafka-triggered workflows call other services through outbound HTTP clients.
+- WireMock-backed tests when Kafka-triggered workflows call other services through the generated OpenFeign client.
 
 **Does Not Own**
 
@@ -21,11 +22,11 @@ This module receives Kafka records and invokes application use cases. It is an i
 
 **Dependency Direction**
 
-`adapters/inbound-kafka` depends on `application` and calls inbound ports such as `RegisterCustomerUseCase`.
+`adapters/inbound-kafka` depends on `application` and `client`. The generated example forwards the application `CustomerRegistered` domain event to Kafka when Kafka is enabled, consumes a `CustomerRegisteredKafkaMessage` from `customer-registered-events`, extracts the customer id, and uses `MyAppClient` to fetch the full customer payload over HTTP.
 
 Never make `application` depend on this module. The application layer must not know Kafka exists.
 
-Kafka-triggered workflows may call other services, but the call should go through an application outbound port and an outbound HTTP adapter. Keep the listener focused on transport concerns: consume the message, convert it to an application command, and call the use case.
+Kafka-triggered workflows may call other services. Keep the listener focused on transport concerns: consume the message, convert it to a typed value, and call a client or application port. When calling HTTP services, use the generated client module instead of duplicating paths or DTOs.
 
 **Runtime Composition**
 
@@ -41,6 +42,7 @@ spring:
     bootstrap-servers: kafka.kafka.svc.cluster.local:9092
 customer:
   registration:
+    topic: customer-registered-events
     kafka:
       enabled: true
 ```
@@ -48,7 +50,7 @@ customer:
 **Change Guidance For AI Agents**
 
 - Add a new listener here when the trigger is a Kafka topic.
-- Keep listener methods thin: validate transport assumptions, convert to an application command, call a use case.
+- Keep listener methods thin: validate transport assumptions, convert to a typed value, call a client or use case.
 - Keep message records transport-shaped. Do not reuse JPA entities, REST request DTOs, or domain objects as Kafka payloads.
 - Add retry, error-handler, dead-letter, and concurrency configuration in `webapp` unless it is specific to one listener.
 - Add a Testcontainers Kafka adapter test when listener topics, message DTOs, deserialization settings, or command conversion changes. Use AssertJ assertions.

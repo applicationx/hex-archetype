@@ -13,10 +13,12 @@ This module contains use cases and ports for `${artifactId}`. It coordinates dom
 **Current Contents**
 
 - `RegisterCustomerUseCase`: inbound port for customer registration.
+- `GetCustomerUseCase`: inbound port for retrieving a registered customer payload.
 - `RegisterCustomerCommand`: input command for registration.
 - `CustomerRepository`: outbound persistence port.
 - `DomainEventPublisher`: outbound event publication port.
 - `CustomerAlreadyExistsException`: typed application exception translated by inbound adapters.
+- `CustomerNotFoundException`: typed application exception translated by inbound adapters.
 - `CustomerApplicationService`: use-case implementation.
 - `CustomerApplicationServiceTest`: unit test using an in-memory fake repository.
 

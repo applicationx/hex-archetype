@@ -1,5 +1,6 @@
 package ${package}.webapp.config;
 
+import ${package}.application.port.in.GetCustomerUseCase;
 import ${package}.application.port.in.RegisterCustomerUseCase;
 import ${package}.application.port.out.CustomerRepository;
 import ${package}.application.port.out.DomainEventPublisher;
@@ -12,8 +13,18 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationWiringConfig {
 
     @Bean
-    RegisterCustomerUseCase registerCustomerUseCase(CustomerRepository customerRepository, DomainEventPublisher domainEventPublisher) {
+    CustomerApplicationService customerApplicationService(CustomerRepository customerRepository, DomainEventPublisher domainEventPublisher) {
         return new CustomerApplicationService(customerRepository, domainEventPublisher);
+    }
+
+    @Bean
+    RegisterCustomerUseCase registerCustomerUseCase(CustomerApplicationService customerApplicationService) {
+        return customerApplicationService;
+    }
+
+    @Bean
+    GetCustomerUseCase getCustomerUseCase(CustomerApplicationService customerApplicationService) {
+        return customerApplicationService;
     }
 
     @Bean

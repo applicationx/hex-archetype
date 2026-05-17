@@ -77,7 +77,7 @@ spring:
 
 customer:
   registration:
-    topic: customer-registration-commands
+    topic: customer-registered-events
     kafka:
       enabled: true
 

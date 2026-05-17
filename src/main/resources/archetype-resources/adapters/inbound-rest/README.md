@@ -12,9 +12,10 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 
 **Current Contents**
 
-- `CustomerController`: REST endpoint for registering customers.
+- `CustomerController`: REST endpoints for registering customers and retrieving customer payloads.
 - `RegisterCustomerRequest`: HTTP request DTO.
 - `RegisterCustomerResponse`: HTTP response DTO.
+- `CustomerResponse`: HTTP response DTO for full customer payloads.
 - `GatewayUserResponse`: HTTP response DTO for the authenticated gateway actor.
 - `CustomerRestConverter`: converts between REST DTOs and application/domain types.
 - `GatewayUserMapper`: converts JWT claims into REST-facing user data.
@@ -26,7 +27,7 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 **Dependency Direction**
 
 - This module may depend on `application`.
-- This module receives a `RegisterCustomerUseCase` from the application layer.
+- This module receives `RegisterCustomerUseCase` and `GetCustomerUseCase` from the application layer.
 - This module must not depend on `webapp`, `client`, or outbound adapter modules.
 - REST controllers must not initiate service-to-service HTTP calls. Put cross-service dependencies behind application outbound ports and implement them in outbound adapters.
 

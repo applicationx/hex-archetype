@@ -35,6 +35,11 @@
       <artifactId>${rootArtifactId}-adapter-outbound-jpa</artifactId>
       <version>${d}{project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${groupId}</groupId>
+      <artifactId>${rootArtifactId}-client</artifactId>
+      <version>${d}{project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework.boot</groupId>

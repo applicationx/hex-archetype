@@ -72,13 +72,14 @@ When Spring Cloud CircuitBreaker is enabled in the consuming app, OpenFeign call
 
 **Kafka Inbound Adapter**
 
-The `adapters/inbound-kafka` module consumes customer-registration commands from Kafka and invokes the same `RegisterCustomerUseCase` used by the REST adapter.
+The `adapters/inbound-kafka` module consumes `customer-registered-events` messages from Kafka. The message carries the registered customer id; the listener uses the generated OpenFeign client to fetch the full customer payload from the REST API. Its integration test uses Testcontainers Kafka plus WireMock for the HTTP client edge.
 
 Kafka listener startup is disabled by default so local runs and generated smoke tests do not require a broker. Enable it with:
 
 ```yaml
 customer:
   registration:
+    topic: customer-registered-events
     kafka:
       enabled: true
 ```

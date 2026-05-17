@@ -1,11 +1,14 @@
 package ${package}.adapters.inbound.rest.controller;
 
 import ${package}.adapters.inbound.rest.converter.CustomerRestConverter;
+import ${package}.adapters.inbound.rest.dto.CustomerResponse;
 import ${package}.adapters.inbound.rest.dto.GatewayUserResponse;
 import ${package}.adapters.inbound.rest.dto.RegisterCustomerRequest;
 import ${package}.adapters.inbound.rest.dto.RegisterCustomerResponse;
 import ${package}.adapters.inbound.rest.security.GatewayUserMapper;
+import ${package}.application.port.in.GetCustomerUseCase;
 import ${package}.application.port.in.RegisterCustomerUseCase;
+import ${package}.domain.model.CustomerId;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -20,11 +23,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/customers")
@@ -32,9 +37,11 @@ import java.util.Objects;
 public class CustomerController {
 
     private final RegisterCustomerUseCase registerCustomerUseCase;
+    private final GetCustomerUseCase getCustomerUseCase;
 
-    public CustomerController(RegisterCustomerUseCase registerCustomerUseCase) {
+    public CustomerController(RegisterCustomerUseCase registerCustomerUseCase, GetCustomerUseCase getCustomerUseCase) {
         this.registerCustomerUseCase = Objects.requireNonNull(registerCustomerUseCase, "registerCustomerUseCase must not be null");
+        this.getCustomerUseCase = Objects.requireNonNull(getCustomerUseCase, "getCustomerUseCase must not be null");
     }
 
     @PostMapping
@@ -59,6 +66,23 @@ public class CustomerController {
             @org.springframework.web.bind.annotation.RequestBody RegisterCustomerRequest request) {
         var id = registerCustomerUseCase.register(CustomerRestConverter.toCommand(request));
         return ResponseEntity.ok(CustomerRestConverter.toResponse(id));
+    }
+
+    @GetMapping("/{customerId}")
+    @Operation(
+            summary = "Get customer payload",
+            description = "Returns the full customer payload for a registered customer id.",
+            security = @SecurityRequirement(name = "zitadel"))
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Customer found",
+                    content = @Content(schema = @Schema(implementation = CustomerResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Customer not found", content = @Content)
+    })
+    public ResponseEntity<CustomerResponse> getCustomer(@PathVariable UUID customerId) {
+        var customer = getCustomerUseCase.getCustomer(new CustomerId(customerId));
+        return ResponseEntity.ok(CustomerRestConverter.toResponse(customer));
     }
 
     @GetMapping("/me")
