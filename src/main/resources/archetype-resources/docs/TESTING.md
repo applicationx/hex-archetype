@@ -27,6 +27,16 @@ assertThat(result).isEqualTo(expected);
 
 Avoid JUnit assertion methods in generated tests unless a specific JUnit API is needed for assumptions or lifecycle control.
 
+## Mockito on JDK 25
+
+Mockito's inline mock maker uses Java instrumentation. JDK 21 and newer warn when a library dynamically attaches an agent to a running JVM, and a future JDK is expected to disallow that by default. The parent Maven build avoids that warning by loading Mockito at JVM startup for both Surefire and Failsafe:
+
+- `maven-dependency-plugin` copies `org.mockito:mockito-core` to `target/agents/mockito-core.jar` during `process-test-classes`.
+- Surefire and Failsafe include `-javaagent:${project.build.directory}/agents/mockito-core.jar` and `-Xshare:off`.
+- The test `argLine` keeps `@{argLine}` so JaCoCo can still add its coverage agent.
+
+Do not replace this with a JUnit 5 extension. Extensions can initialize mocks or enforce Mockito strictness, but they cannot avoid JVM dynamic-agent loading once Mockito needs inline instrumentation.
+
 ## Module Guidance
 
 - `domain`: pure unit tests for domain value objects and entities.

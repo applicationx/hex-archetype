@@ -129,6 +129,8 @@ Run the full test suite with `mvn -B -ntp verify`. Unit tests use `*Test.java`; 
 
 See `docs/TESTING.md` for module-specific test placement, Testcontainers guidance, and AssertJ assertion conventions.
 
+The parent build preloads Mockito as a test JVM `-javaagent` for JDK 25 compatibility while preserving JaCoCo coverage arguments. Keep that setup in the parent POM instead of moving it into individual JUnit 5 tests.
+
 For service-to-service HTTP tests, use WireMock by default. REST controllers should not initiate outbound service calls; Kafka-triggered workflows may call other services through the generated client module or an application outbound port, and those HTTP edges should be stubbed with WireMock in integration tests.
 
 **Gateway User**
