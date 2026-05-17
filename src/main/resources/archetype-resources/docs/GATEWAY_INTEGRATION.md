@@ -3,7 +3,9 @@
 
 This guide is for an AI agent integrating this generated service with `/home/appx/github/spring-gateway-base`.
 
-The generated service is designed to run behind `spring-gateway-base`. The gateway owns browser login, logout, Redis-backed session state, actor token relay, and impersonation token relay. This service should stay a downstream resource server and should not implement its own gateway login/session behavior.
+The generated service is designed to run behind `spring-gateway-base`. The gateway owns browser login, logout, Redis-backed session state, actor token relay, impersonation token relay, and browser-facing HTTP composition across services. This service should stay a downstream resource server and should not implement its own gateway login/session behavior.
+
+AppX service communication rule: REST services must not initiate REST-to-REST calls. Browser-facing HTTP workflows that need data from multiple services belong in `spring-gateway-base` as gateway composition endpoints. Event-driven workflows may use `inbound-kafka -> generated client -> target REST service`, with those HTTP calls covered by WireMock tests.
 
 **Generated Service Facts**
 
@@ -24,9 +26,22 @@ Open these files in `/home/appx/github/spring-gateway-base` before editing:
 - `src/main/resources/application.yaml`: Spring Cloud Gateway route definitions and downstream service URI environment defaults.
 - `src/main/java/com/appx/gateway/config/SecurityConfig.java`: authenticated path rules, OAuth2 login, resource-server setup, and logout.
 - `src/main/java/com/appx/gateway/config/ActorOrImpersonationRelayFilter.java`: allow-list for paths that receive the actor or active impersonation bearer token.
+- `src/main/java/com/appx/gateway/web/`: gateway-owned HTTP controllers for composition/admin endpoints.
+- `src/main/java/com/appx/gateway/impersonation/UserDirectoryClient.java`: current reactive `WebClient` downstream-call pattern for gateway-owned service calls.
 - `src/test/java/com/appx/gateway/config/EanGatewayRouteConfigurationTest.java`: current AssertJ route-config test pattern.
 - `helm/spring-gateway-base/values.yaml`: Kubernetes environment variables for downstream service URLs.
 - `/home/appx/github/k3s-dev/manifests/argocd/spring-gateway-base-application.yaml`: confirms Argo CD consumes `helm/spring-gateway-base/values.yaml`.
+
+**Gateway Role**
+
+Use two gateway patterns deliberately:
+
+- Simple proxy route: use Spring Cloud Gateway route config when the browser path maps to one downstream service.
+- Composition endpoint: add a controller/service in `spring-gateway-base` when one browser endpoint must read or combine data from multiple downstream services.
+
+Do not put multi-service REST orchestration inside generated REST services. If service A needs to react to service B, model that as a domain event consumed by `adapters/inbound-kafka`, and let the Kafka adapter use a generated client for the allowed `inbound-kafka -> REST` call.
+
+For gateway composition endpoints, prefer the existing reactive `WebClient` pattern used by `UserDirectoryClient`. Do not use the generated OpenFeign client inside `spring-gateway-base` unless the gateway has been intentionally adapted for blocking clients, because `spring-gateway-base` is WebFlux/reactive.
 
 **Route To Add**
 
@@ -75,6 +90,31 @@ In `ActorOrImpersonationRelayFilter.java`, update `shouldRelayPath` so the selec
 
 This is required for downstream REST controllers to see `Authorization: Bearer ...`. Without this change, the gateway may authenticate the browser session but the generated service will not receive a bearer token for `@AuthenticationPrincipal Jwt`.
 
+Gateway composition endpoints that call downstream services must also relay the actor or active impersonation token on their `WebClient` calls. Reuse or extract the existing gateway token lookup behavior instead of making downstream service calls without an `Authorization` header.
+
+**Composition Endpoint Guidance**
+
+Use this pattern when a frontend endpoint spans multiple services:
+
+1. Add a controller under `spring-gateway-base/src/main/java/com/appx/gateway/web/`.
+2. Add one reactive downstream client per service integration, following the `UserDirectoryClient` `WebClient` style.
+3. Read the actor or impersonation token from gateway session state and set `Authorization: Bearer ...` on each downstream request.
+4. Combine the downstream responses into a gateway-owned response DTO.
+5. Keep writes explicit. If a workflow changes multiple services, prefer a command to one owning service plus domain events, not a gateway transaction across services.
+6. Test downstream HTTP edges with WireMock and AssertJ.
+
+Example endpoint shape:
+
+```text
+GET /workspace/summary
+  -> gateway reads current actor token
+  -> gateway calls /customers/api/v1/customers/me
+  -> gateway calls /orders/api/v1/orders/recent
+  -> gateway returns one browser-facing summary DTO
+```
+
+This keeps REST composition at the edge and preserves the rule that generated REST services do not call other REST services.
+
 **Gateway Helm Values**
 
 In `spring-gateway-base/helm/spring-gateway-base/values.yaml`, add an environment variable for the service URI:
@@ -110,6 +150,7 @@ If `/home/appx/github/appx-web` should call this service through the gateway:
 - Call the gateway path, not the Kubernetes service URL.
 - Use relative browser paths or the existing gateway base helper pattern, depending on where the call is made.
 - Do not call the generated service directly from the browser.
+- If a screen needs data from multiple services, call one gateway composition endpoint instead of making the browser coordinate several downstream service routes.
 
 Example browser path after gateway integration:
 
