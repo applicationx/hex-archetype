@@ -18,7 +18,10 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 - `GatewayUserResponse`: HTTP response DTO for the authenticated gateway actor.
 - `CustomerRestConverter`: converts between REST DTOs and application/domain types.
 - `GatewayUserMapper`: converts JWT claims into REST-facing user data.
+- `RestExceptionHandler`: maps application and validation errors into RFC 9457 `ProblemDetail` responses.
 - `springdoc-openapi-starter-webmvc-ui`: generates `/v3/api-docs` and Swagger UI from Spring MVC mappings and OpenAPI annotations.
+- `CustomerControllerTest`: AssertJ-based adapter test for controller/use-case delegation and gateway JWT claim mapping.
+- `RestExceptionHandlerTest`: AssertJ-based test for REST error response mapping.
 
 **Dependency Direction**
 
@@ -32,6 +35,8 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 - Add REST-specific DTOs here when the wire format differs from application commands.
 - Add converter logic here when translating HTTP data into application commands.
 - Add `@Operation`, `@ApiResponse`, `@Tag`, and `@Schema` annotations here when changing API contracts.
+- Add or update `RestExceptionHandler` mappings when new application exceptions need stable HTTP status codes and problem types.
+- Add adapter tests here when controller behavior, DTO mapping, validation, or JWT claim handling changes. Use AssertJ assertions.
 
 **OpenAPI**
 
@@ -60,3 +65,4 @@ Use `GatewayUserMapper` when an endpoint needs transport-safe user details from 
 - Do not implement business rules here; call application use cases.
 - Do not inject JPA repositories or external clients directly into controllers.
 - Do not return JPA entities or domain objects directly if the API contract needs stable DTOs.
+- Do not let generic exceptions define public API behavior. Translate typed application exceptions into `ProblemDetail` responses here.

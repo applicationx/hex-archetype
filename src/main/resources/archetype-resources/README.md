@@ -12,6 +12,7 @@ Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetyp
 - `webapp`: Spring Boot composition root with a React/Vite frontend.
 - `client`: reusable HTTP client module.
 - `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
+- `docs/TESTING.md`: generated test strategy and integration-test guidance.
 - `deploy/appx-spring-boot/values.yaml`: starting values file for the AppX shared Spring Boot Helm chart.
 
 **Requirements**
@@ -44,6 +45,12 @@ When the app is running:
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 
 Swagger UI includes an OAuth2 Authorize button for ZITADEL. Set `SWAGGER_UI_OAUTH_CLIENT_ID` for the browser client used by Swagger UI.
+
+**REST Error Handling**
+
+The REST adapter maps application and validation failures to RFC 9457 `ProblemDetail` responses through `RestExceptionHandler`.
+
+Typed application exceptions belong in `application`; HTTP status codes, problem titles, problem types, and response details belong in `adapters/inbound-rest`.
 
 **OpenFeign Client**
 
@@ -91,6 +98,12 @@ env:
 Put non-secret Kubernetes runtime config in `applicationx/spring-config` under `services/${artifactId}/`. Put secrets in Vault under `secret/config/${artifactId}/kubernetes`.
 
 See `docs/KUBERNETES_CONFIG_SERVER.md` for the full setup.
+
+**Testing**
+
+Run the full test suite with `mvn -B -ntp verify`. Unit tests use `*Test.java`; integration tests use `*IT.java` and Maven Failsafe.
+
+See `docs/TESTING.md` for module-specific test placement, Testcontainers guidance, and AssertJ assertion conventions.
 
 **Gateway User**
 

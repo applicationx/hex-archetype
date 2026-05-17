@@ -70,6 +70,10 @@ spring:
     url: jdbc:postgresql://postgresql.database.svc.cluster.local:5432/${artifactId}
   kafka:
     bootstrap-servers: kafka.kafka.svc.cluster.local:9092
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
 
 customer:
   registration:

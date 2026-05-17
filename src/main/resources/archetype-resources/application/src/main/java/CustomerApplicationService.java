@@ -1,6 +1,7 @@
 package ${package}.application.service;
 
 import ${package}.application.command.RegisterCustomerCommand;
+import ${package}.application.exception.CustomerAlreadyExistsException;
 import ${package}.application.port.in.RegisterCustomerUseCase;
 import ${package}.application.port.out.CustomerRepository;
 import ${package}.application.port.out.DomainEventPublisher;
@@ -26,7 +27,7 @@ public final class CustomerApplicationService implements RegisterCustomerUseCase
         var email = new EmailAddress(command.email());
 
         customerRepository.findByEmail(email).ifPresent(existing -> {
-            throw new IllegalStateException("customer already exists for email");
+            throw new CustomerAlreadyExistsException(email.value());
         });
 
         Customer customer = Customer.registerNew(email);

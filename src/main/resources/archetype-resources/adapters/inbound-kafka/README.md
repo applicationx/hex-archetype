@@ -9,6 +9,7 @@ This module receives Kafka records and invokes application use cases. It is an i
 - Kafka listener methods and listener-specific annotations.
 - Kafka message DTOs that represent the wire payload consumed from Kafka.
 - Converters from Kafka message DTOs into application commands.
+- Testcontainers-based Kafka smoke tests for listener wiring.
 
 **Does Not Own**
 
@@ -47,3 +48,4 @@ customer:
 - Keep listener methods thin: validate transport assumptions, convert to an application command, call a use case.
 - Keep message records transport-shaped. Do not reuse JPA entities, REST request DTOs, or domain objects as Kafka payloads.
 - Add retry, error-handler, dead-letter, and concurrency configuration in `webapp` unless it is specific to one listener.
+- Add a Testcontainers Kafka adapter test when listener topics, message DTOs, deserialization settings, or command conversion changes. Use AssertJ assertions.
