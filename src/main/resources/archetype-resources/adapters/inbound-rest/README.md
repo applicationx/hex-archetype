@@ -24,6 +24,12 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 - `CustomerControllerTest`: AssertJ-based adapter test for controller/use-case delegation and gateway JWT claim mapping.
 - `RestExceptionHandlerTest`: AssertJ-based test for REST error response mapping.
 
+**Published HTTP Contract**
+
+- `POST /api/v1/customers`: registers a customer and returns `RegisterCustomerResponse`.
+- `GET /api/v1/customers/{customerId}`: returns `CustomerResponse` for service-to-service lookup through the generated client.
+- `GET /api/v1/customers/me`: returns authenticated gateway user claims.
+
 **Dependency Direction**
 
 - This module may depend on `application`.

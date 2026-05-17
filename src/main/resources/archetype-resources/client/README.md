@@ -18,6 +18,11 @@ This module contains reusable client-side API types for calling `${artifactId}` 
 - `CustomerResponse`: client response DTO for retrieving full customer payloads.
 - `CustomerClientTestFixtures`: reusable test fixture packaged in the `tests` classifier JAR.
 
+**Published Client Contract**
+
+- `registerCustomer(RegisterCustomerRequest)`: calls `POST /api/v1/customers`.
+- `getCustomer(UUID)`: calls `GET /api/v1/customers/{customerId}` and returns `CustomerResponse`.
+
 **Dependency Direction**
 
 - This module should be usable by other applications.
@@ -50,7 +55,7 @@ The client module attaches a test JAR so other services can reuse stable client 
 <dependency>
   <groupId>${groupId}</groupId>
   <artifactId>${artifactId}-client</artifactId>
-  <version>${d}{project.version}</version>
+  <version>${version}</version>
   <classifier>tests</classifier>
   <scope>test</scope>
 </dependency>

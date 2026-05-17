@@ -22,6 +22,12 @@ This module contains use cases and ports for `${artifactId}`. It coordinates dom
 - `CustomerApplicationService`: use-case implementation.
 - `CustomerApplicationServiceTest`: unit test using an in-memory fake repository.
 
+**Current Flow**
+
+- `register(RegisterCustomerCommand)` validates uniqueness, stores the customer, publishes `CustomerRegistered`, and returns the new `CustomerId`.
+- `getCustomer(CustomerId)` loads the registered customer through `CustomerRepository.findById` and throws `CustomerNotFoundException` when missing.
+- Domain events are published through `DomainEventPublisher`; Spring and Kafka integration happens outside this module.
+
 **Dependency Direction**
 
 - This module may depend on `domain`.

@@ -7,10 +7,10 @@ Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetyp
 - `domain`: domain model and rules.
 - `application`: use cases and ports.
 - `adapters/inbound-rest`: REST adapter.
-- `adapters/inbound-kafka`: Kafka command adapter.
+- `adapters/inbound-kafka`: Kafka event adapter and event-to-client workflow example.
 - `adapters/outbound-jpa`: JPA adapter.
 - `webapp`: Spring Boot composition root with a React/Vite frontend.
-- `client`: reusable HTTP client module.
+- `client`: reusable OpenFeign HTTP client module plus a `tests` classifier JAR with DTO fixtures.
 - `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
 - `docs/TESTING.md`: generated test strategy and integration-test guidance.
 - `deploy/appx-spring-boot/values.yaml`: starting values file for the AppX shared Spring Boot Helm chart.
@@ -70,9 +70,16 @@ ${artifactId}:
 
 When Spring Cloud CircuitBreaker is enabled in the consuming app, OpenFeign calls are wrapped in circuit breakers. With `resilience4j-bulkhead` on the classpath, Spring Cloud CircuitBreaker also applies Resilience4j bulkheads.
 
+The generated client includes registration and lookup methods:
+
+- `POST /api/v1/customers`
+- `GET /api/v1/customers/{customerId}`
+
+It also attaches a test JAR so other services can reuse client DTO fixtures in their own tests.
+
 **Kafka Inbound Adapter**
 
-The `adapters/inbound-kafka` module consumes `customer-registered-events` messages from Kafka. The message carries the registered customer id; the listener uses the generated OpenFeign client to fetch the full customer payload from the REST API. Its integration test uses Testcontainers Kafka plus WireMock for the HTTP client edge.
+The application service publishes a `CustomerRegistered` domain event after durable customer registration. When Kafka is enabled, `CustomerRegisteredKafkaPublisher` forwards that domain event to the `customer-registered-events` topic. `CustomerRegistrationKafkaListener` consumes the Kafka event, extracts the customer id, and uses the generated OpenFeign client to fetch the full customer payload from the REST API. Its integration test uses Testcontainers Kafka plus WireMock for the HTTP client edge.
 
 Kafka listener startup is disabled by default so local runs and generated smoke tests do not require a broker. Enable it with:
 
@@ -106,7 +113,7 @@ Run the full test suite with `mvn -B -ntp verify`. Unit tests use `*Test.java`; 
 
 See `docs/TESTING.md` for module-specific test placement, Testcontainers guidance, and AssertJ assertion conventions.
 
-For service-to-service HTTP tests, use WireMock by default. REST controllers should not initiate outbound service calls; Kafka-triggered workflows may call other services through application outbound ports and HTTP adapters, and those HTTP edges should be stubbed with WireMock in integration tests.
+For service-to-service HTTP tests, use WireMock by default. REST controllers should not initiate outbound service calls; Kafka-triggered workflows may call other services through the generated client module or an application outbound port, and those HTTP edges should be stubbed with WireMock in integration tests.
 
 **Gateway User**
 

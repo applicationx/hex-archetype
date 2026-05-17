@@ -14,7 +14,7 @@ This module contains the business model and rules for `${artifactId}`. It is the
 - `Customer`: aggregate-style domain object for a registered customer.
 - `CustomerId`: value object wrapping a `UUID`.
 - `EmailAddress`: value object with email validation.
-- `CustomerRegistered`: domain event emitted after a customer is registered.
+- `CustomerRegistered`: domain event emitted by the application layer after a customer is registered and persisted.
 - `EmailAddressTest`: focused domain rule tests.
 
 **Dependency Direction**
@@ -29,6 +29,10 @@ This module contains the business model and rules for `${artifactId}`. It is the
 - Add new value objects here when validation or equality semantics matter.
 - Add new domain events here when other parts of the system need to react to completed domain facts.
 - Add domain tests here for pure rules that do not require Spring or a database.
+
+**Domain Events**
+
+Domain events are facts, not commands. `CustomerRegistered` carries the registered `CustomerId`, `EmailAddress`, and registration timestamp. Infrastructure adapters may publish or consume messages based on this event, but the domain event itself must stay free of Kafka, JSON, Spring, and client concerns.
 
 **Avoid**
 

@@ -6,7 +6,7 @@ This module receives Kafka records and invokes application-facing behavior. It i
 
 **Owns**
 
-- Kafka listener methods and listener-specific annotations.
+- Kafka listener and publisher methods with listener-specific annotations.
 - Kafka message DTOs that represent the wire payload consumed from Kafka.
 - Converters from Kafka message DTOs into domain-facing identifiers or application commands.
 - Kafka publication bridge from the application `CustomerRegistered` domain event to the `customer-registered-events` topic when Kafka is enabled.
@@ -27,6 +27,14 @@ This module receives Kafka records and invokes application-facing behavior. It i
 Never make `application` depend on this module. The application layer must not know Kafka exists.
 
 Kafka-triggered workflows may call other services. Keep the listener focused on transport concerns: consume the message, convert it to a typed value, and call a client or application port. When calling HTTP services, use the generated client module instead of duplicating paths or DTOs.
+
+**Generated Event Flow**
+
+1. `CustomerApplicationService.register` publishes `CustomerRegistered` through the application `DomainEventPublisher`.
+2. `webapp` adapts `DomainEventPublisher` to Spring's `ApplicationEventPublisher`.
+3. `CustomerRegisteredKafkaPublisher` listens for the Spring event and sends `CustomerRegisteredKafkaMessage` to `customer-registered-events` when `customer.registration.kafka.enabled=true`.
+4. `CustomerRegistrationKafkaListener` consumes the Kafka event and calls `MyAppClient#getCustomer(customerId)`.
+5. `CustomerRegistrationKafkaListenerIT` verifies the flow with Testcontainers Kafka and WireMock.
 
 **Runtime Composition**
 

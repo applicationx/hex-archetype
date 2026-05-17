@@ -11,7 +11,7 @@ This module implements persistence using Spring Data JPA. It is an outbound adap
 
 **Current Contents**
 
-- `CustomerRepositoryJpaAdapter`: implements the application `CustomerRepository` port.
+- `CustomerRepositoryJpaAdapter`: implements the application `CustomerRepository` port, including lookup by id and email.
 - `SpringDataCustomerJpaRepository`: Spring Data JPA repository.
 - `CustomerJpaEntity`: JPA entity mapped to the `customers` table.
 - `CustomerJpaConverter`: converts domain objects to JPA entities.
@@ -29,6 +29,7 @@ This module implements persistence using Spring Data JPA. It is an outbound adap
 - Add Spring Data repositories here for database access.
 - Add adapter implementations here for new outbound persistence ports.
 - Add converter/factory code here when translating between persistence and domain models.
+- Keep repository methods aligned with application ports, for example `findById`, `findByEmail`, and `save`.
 
 **Avoid**
 
