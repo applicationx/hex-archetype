@@ -1,13 +1,13 @@
 #set($d = '$')
 # Kubernetes Config Server
 
-This project is ready to consume the AppX Spring Cloud Config Server when the `webapp` service runs in Kubernetes.
+This project is ready to consume the AppX Spring Cloud Config Server when the generated Spring Boot services run in Kubernetes.
 
-The executable service is `webapp`. The REST and Kafka adapters are libraries inside that service:
+The executable Java services are separate modules:
 
-- `adapters/inbound-rest` provides Spring MVC controllers.
-- `adapters/inbound-kafka` provides Spring Kafka listeners.
-- `webapp` owns startup, Spring Cloud Config Client, profiles, and deployment environment.
+- `adapters/inbound-rest` provides Spring MVC controllers, OpenAPI, security, persistence, and the Kafka publisher for registration events.
+- `adapters/inbound-kafka` provides Spring Kafka listeners and allowed event-driven client calls.
+- `webapp` is the Node/Vite browser frontend and does not consume Spring Cloud Config.
 
 ## Runtime Config Server
 
@@ -19,7 +19,7 @@ Service:   config-server
 URL:       http://config-server.config-system.svc.cluster.local:8888
 ```
 
-The generated `webapp/src/main/resources/application.yml` contains only bootstrap-level config for Kubernetes:
+The generated service `application.yml` files contain bootstrap-level config for Kubernetes:
 
 ```yaml
 spring:
@@ -55,11 +55,13 @@ The generated `deploy/appx-spring-boot/values.yaml` follows the same pattern use
 
 ## Config Repository Files
 
-Put non-secret config in the Config Server Git repository using the service name:
+Put non-secret config in the Config Server Git repository using the service names:
 
 ```text
 services/${artifactId}/${artifactId}.yml
 services/${artifactId}/${artifactId}-kubernetes.yml
+services/${artifactId}-inbound-kafka/${artifactId}-inbound-kafka.yml
+services/${artifactId}-inbound-kafka/${artifactId}-inbound-kafka-kubernetes.yml
 ```
 
 Example `services/${artifactId}/${artifactId}-kubernetes.yml`:
@@ -107,11 +109,11 @@ kubectl -n config-system exec vault-0 -- vault kv put secret/config/${artifactId
 
 ## Adapter Guidance
 
-REST endpoint behavior belongs in `adapters/inbound-rest`, but REST runtime properties belong in Config Server and are consumed by `webapp`.
+REST endpoint behavior and REST runtime ownership belong in `adapters/inbound-rest`; deployment-specific REST runtime properties should still come from Config Server.
 
-Kafka listener behavior belongs in `adapters/inbound-kafka`, but broker URLs, group IDs, topic names, concurrency, retry, and listener enablement belong in Config Server and are consumed by `webapp`.
+Kafka listener behavior and Kafka service startup belong in `adapters/inbound-kafka`; broker URLs, group IDs, topic names, concurrency, retry, and listener enablement belong in Config Server.
 
-Gateway user handling is implemented as JWT resource-server support in `webapp`. The `spring-gateway-base` gateway relays the actor or impersonated user token as the `Authorization: Bearer ...` header. REST controllers in `adapters/inbound-rest` can use `@AuthenticationPrincipal Jwt` and map claims into transport DTOs.
+Gateway user handling is implemented as JWT resource-server support in `adapters/inbound-rest`. The `spring-gateway-base` gateway relays the actor or impersonated user token as the `Authorization: Bearer ...` header. REST controllers can use `@AuthenticationPrincipal Jwt` and map claims into transport DTOs.
 
 Swagger UI uses OAuth2 authorization-code login with PKCE. Configure `SWAGGER_UI_OAUTH_CLIENT_ID` with a ZITADEL browser/web client that has a redirect URI matching the service Swagger UI OAuth redirect endpoint, normally:
 

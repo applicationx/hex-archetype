@@ -4,19 +4,25 @@
 This generated service can run locally in two modes:
 
 - `local` profile: default profile, uses in-memory H2 and keeps Kafka disabled.
-- `dev` profile: uses `compose.yaml` for PostgreSQL and Kafka, enables inbound Kafka, and keeps the Spring Boot app running on the host JVM.
+- `dev` profile: uses `compose.yaml` for PostgreSQL and Kafka, enables Kafka publication/listening, and keeps the Spring Boot services running on the host JVM.
 
 Use `dev` when you want to test the real local stack: inbound REST, OpenAPI/Swagger UI, PostgreSQL persistence, Kafka publication, and Kafka listener behavior.
 
 **Recommended Local Run**
 
-Start the app with the `dev` profile:
+Start the REST service with the `dev` profile:
 
 ```bash
-mvn -pl webapp -am spring-boot:run -Dspring-boot.run.profiles=dev
+mvn -pl adapters/inbound-rest -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-With `spring-boot-docker-compose` on the `webapp` classpath, Spring Boot reads `compose.yaml`, starts PostgreSQL and Kafka if needed, waits for readiness, and creates connection details for the app.
+With `spring-boot-docker-compose` on the `adapters/inbound-rest` classpath, Spring Boot reads `compose.yaml`, starts PostgreSQL and Kafka if needed, waits for readiness, and creates connection details for the app.
+
+Start the Kafka listener service in a second terminal:
+
+```bash
+mvn -pl adapters/inbound-kafka -am spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
 The generated `dev` profile uses:
 
@@ -24,7 +30,7 @@ The generated `dev` profile uses:
 spring:
   docker:
     compose:
-      file: ${d}{DOCKER_COMPOSE_FILE:../compose.yaml}
+      file: ${d}{DOCKER_COMPOSE_FILE:../../compose.yaml}
       lifecycle-management: start-only
 ```
 
@@ -40,7 +46,8 @@ If you want to manage containers yourself:
 
 ```bash
 docker compose up -d
-SPRING_DOCKER_COMPOSE_ENABLED=false mvn -pl webapp -am spring-boot:run -Dspring-boot.run.profiles=dev
+SPRING_DOCKER_COMPOSE_ENABLED=false mvn -pl adapters/inbound-rest -am spring-boot:run -Dspring-boot.run.profiles=dev
+SPRING_DOCKER_COMPOSE_ENABLED=false mvn -pl adapters/inbound-kafka -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Manual mode uses the fixed local ports in `compose.yaml`:
@@ -68,11 +75,11 @@ In the `dev` profile:
 
 1. `POST /api/v1/customers` registers a customer.
 2. The application publishes `CustomerRegistered`.
-3. `CustomerRegisteredKafkaPublisher` sends `CustomerRegisteredKafkaMessage` to `customer-registered-events`.
-4. `CustomerRegistrationKafkaListener` consumes the event.
+3. `CustomerRegisteredKafkaPublisher` in `adapters/inbound-rest` sends `CustomerRegisteredKafkaMessage` to `customer-registered-events`.
+4. `CustomerRegistrationKafkaListener` in `adapters/inbound-kafka` consumes the event.
 5. The listener uses the generated OpenFeign client against `http://localhost:8080`.
 
-This verifies that both inbound REST and inbound Kafka are loaded in the single executable `webapp` service.
+This verifies that inbound REST and inbound Kafka run as separate local Spring Boot services.
 
 **Kubernetes Separation**
 

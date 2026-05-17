@@ -1,7 +1,6 @@
 #set($d = '$')
-package ${package}.adapters.inbound.kafka.listener;
+package ${package}.adapters.inbound.rest.kafka;
 
-import ${package}.adapters.inbound.kafka.message.CustomerRegisteredKafkaMessage;
 import ${package}.domain.event.CustomerRegistered;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

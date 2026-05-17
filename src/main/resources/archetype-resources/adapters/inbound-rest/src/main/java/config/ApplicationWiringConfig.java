@@ -1,4 +1,4 @@
-package ${package}.webapp.config;
+package ${package}.adapters.inbound.rest.config;
 
 import ${package}.application.port.in.GetCustomerUseCase;
 import ${package}.application.port.in.RegisterCustomerUseCase;

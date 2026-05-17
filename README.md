@@ -9,8 +9,8 @@ Default generated stack:
 - springdoc-openapi: `3.0.3`
 - Maven: `3.9.15+`
 - Maven POM model: `4.0.0`
-- Modules: `domain`, `application`, `adapters/inbound-rest`, `adapters/inbound-kafka`, `adapters/outbound-jpa`, `webapp` (Spring Boot + React/Vite frontend), `client`
-- Kubernetes config: Spring Cloud Config Client in `webapp`, with AppX Config Server defaults and shared-chart values example.
+- Modules: `domain`, `application`, `adapters/inbound-rest` (Spring Boot REST/OpenAPI service), `adapters/inbound-kafka` (Spring Boot Kafka listener service), `adapters/outbound-jpa`, `webapp` (Node/Vite frontend), `client`
+- Kubernetes config: Spring Cloud Config Client in the generated Java services, with AppX Config Server defaults and shared-chart values example.
 - AppX dev deployment: generated Dockerfile, GitHub Actions BuildKit workflow, and `helm/<artifactId>/values.yaml` for Argo CD/shared Helm chart deployment on push to `main`.
 - Gateway integration: generated `docs/GATEWAY_INTEGRATION.md` tells an AI how to wire the service into `spring-gateway-base`.
 - Local development: generated `compose.yaml`, `spring-boot-docker-compose`, and `docs/LOCAL_DEVELOPMENT.md` for PostgreSQL/Kafka-backed local runs.
@@ -90,8 +90,8 @@ If Maven mirrors all repositories through `maven-public`, make sure `nexus-snaps
 - Standardizes project bootstrapping across teams.
 - Provides a reusable Spring Cloud OpenFeign client artifact out of the box.
 - Generates OpenAPI docs and Swagger UI for the inbound REST adapter through springdoc-openapi.
-- Includes Kubernetes Config Server bootstrap support for the executable `webapp`, which hosts the inbound REST and inbound Kafka adapters.
-- Builds a real React/Vite frontend in the generated `webapp` module and serves it from Spring Boot static resources.
+- Includes Kubernetes Config Server bootstrap support for the executable REST and Kafka services.
+- Builds a real React/Vite frontend in the generated `webapp` module without adding a second Java frontend.
 - Generates the AppX dev deployment path used by `spring-gateway-base` and `appx-web`: ARC runner, in-cluster BuildKit, Harbor image push, Git image-tag promotion, and Argo CD shared-chart values.
 - Generates a Docker Compose-backed `dev` profile for local PostgreSQL, Kafka, inbound REST, inbound Kafka, and OpenAPI checks without using k3s.
 - Includes common build quality defaults (unit/integration split, coverage, enforcer rules).

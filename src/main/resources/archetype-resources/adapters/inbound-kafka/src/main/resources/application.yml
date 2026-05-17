@@ -1,0 +1,32 @@
+#set($d = '$')
+spring:
+  application:
+    name: ${rootArtifactId}-inbound-kafka
+  profiles:
+    active: ${d}{SPRING_PROFILES_ACTIVE:local}
+  config:
+    import: ${d}{SPRING_CONFIG_IMPORT:optional:configserver:${d}{CONFIG_SERVER_URL:http://config-server.config-system.svc.cluster.local:8888}}
+  kafka:
+    consumer:
+      group-id: ${rootArtifactId}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        spring.json.trusted.packages: "${package}.adapters.inbound.kafka.message"
+        spring.json.value.default.type: ${package}.adapters.inbound.kafka.message.CustomerRegisteredKafkaMessage
+        spring.json.use.type.headers: false
+customer:
+  registration:
+    topic: customer-registered-events
+    kafka:
+      enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

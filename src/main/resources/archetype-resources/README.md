@@ -6,13 +6,13 @@ Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetyp
 
 - `domain`: domain model and rules.
 - `application`: use cases and ports.
-- `adapters/inbound-rest`: REST adapter.
-- `adapters/inbound-kafka`: Kafka event adapter and event-to-client workflow example.
+- `adapters/inbound-rest`: executable Spring Boot REST/OpenAPI service.
+- `adapters/inbound-kafka`: executable Spring Boot Kafka listener service and event-to-client workflow example.
 - `adapters/outbound-jpa`: JPA adapter.
-- `webapp`: Spring Boot composition root with a React/Vite frontend.
+- `webapp`: Node/Vite browser frontend.
 - `client`: reusable OpenFeign HTTP client module plus a `tests` classifier JAR with DTO fixtures.
 - `compose.yaml`: local development PostgreSQL and Kafka backing services.
-- `Dockerfile`: runtime image for the executable Spring Boot `webapp` jar.
+- `Dockerfile`: runtime image for an executable Spring Boot service jar.
 - `.github/workflows/deploy.yml`: AppX dev workflow that builds, tests, pushes an image through in-cluster BuildKit, and promotes the image tag in Git on `main`.
 - `helm/${artifactId}/values.yaml`: app-local values consumed by Argo CD with the shared `appx-spring-boot` chart.
 - `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
@@ -36,15 +36,16 @@ mvn -B -ntp verify
 **Run App**
 
 ```bash
-mvn -pl webapp -am spring-boot:run
+mvn -pl adapters/inbound-rest -am spring-boot:run
 ```
 
-The `webapp` module builds the React frontend from `webapp/src/main/frontend` and serves the production assets from Spring Boot static resources.
+The `webapp` module builds the React frontend from `webapp/src/main/frontend`. The REST and Kafka services are separate Spring Boot processes.
 
 For local development with PostgreSQL and Kafka backing services:
 
 ```bash
-mvn -pl webapp -am spring-boot:run -Dspring-boot.run.profiles=dev
+mvn -pl adapters/inbound-rest -am spring-boot:run -Dspring-boot.run.profiles=dev
+mvn -pl adapters/inbound-kafka -am spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 The `dev` profile uses `spring-boot-docker-compose` and `compose.yaml` to start local PostgreSQL and Kafka. See `docs/LOCAL_DEVELOPMENT.md`.
@@ -94,7 +95,7 @@ It also attaches a test JAR so other services can reuse client DTO fixtures in t
 
 **Kafka Inbound Adapter**
 
-The application service publishes a `CustomerRegistered` domain event after durable customer registration. When Kafka is enabled, `CustomerRegisteredKafkaPublisher` forwards that domain event to the `customer-registered-events` topic. `CustomerRegistrationKafkaListener` consumes the Kafka event, extracts the customer id, and uses the generated OpenFeign client to fetch the full customer payload from the REST API. Its integration test uses Testcontainers Kafka plus WireMock for the HTTP client edge.
+The application service publishes a `CustomerRegistered` domain event after durable customer registration. When Kafka is enabled, `CustomerRegisteredKafkaPublisher` in `adapters/inbound-rest` forwards that domain event to the `customer-registered-events` topic. `CustomerRegistrationKafkaListener` in `adapters/inbound-kafka` consumes the Kafka event, extracts the customer id, and uses the generated OpenFeign client to fetch the full customer payload from the REST API. Its integration test uses Testcontainers Kafka plus WireMock for the HTTP client edge.
 
 Kafka listener startup is disabled by default so generated smoke tests and lightweight local runs do not require a broker. The `dev` profile enables it and starts local Kafka through Docker Compose. Enable it manually with:
 
@@ -108,7 +109,7 @@ customer:
 
 **Kubernetes Config Server**
 
-The executable service is `webapp`; the REST and Kafka modules are adapters loaded by that service. `webapp` includes Spring Cloud Config Client and imports the AppX Config Server by default when deployed with Kubernetes environment variables:
+The executable Java services are `adapters/inbound-rest` and `adapters/inbound-kafka`. Each includes Spring Cloud Config Client and imports the AppX Config Server by default when deployed with Kubernetes environment variables:
 
 ```yaml
 env:

@@ -2,17 +2,10 @@
 spring:
   docker:
     compose:
-      file: ${d}{DOCKER_COMPOSE_FILE:../compose.yaml}
+      file: ${d}{DOCKER_COMPOSE_FILE:../../compose.yaml}
       lifecycle-management: start-only
       readiness:
         timeout: 2m
-  jpa:
-    hibernate:
-      ddl-auto: update
-  datasource:
-    url: ${d}{SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:15432/${rootArtifactId}}
-    username: ${d}{SPRING_DATASOURCE_USERNAME:${rootArtifactId}}
-    password: ${d}{SPRING_DATASOURCE_PASSWORD:${rootArtifactId}}
   kafka:
     bootstrap-servers: ${d}{SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:19092}
     consumer:
@@ -24,15 +17,16 @@ spring:
         spring.json.trusted.packages: "${package}.adapters.inbound.kafka.message"
         spring.json.value.default.type: ${package}.adapters.inbound.kafka.message.CustomerRegisteredKafkaMessage
         spring.json.use.type.headers: false
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
 
 customer:
   registration:
     topic: customer-registered-events
     kafka:
       enabled: true
+
+${rootArtifactId}:
+  client:
+    url: ${d}{APPX_SERVICE_CLIENT_URL:http://localhost:8080}
 
 management:
   endpoints:

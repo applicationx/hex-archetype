@@ -1,4 +1,4 @@
-package ${package}.webapp;
+package ${package}.adapters.inbound.rest;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

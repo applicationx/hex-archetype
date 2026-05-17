@@ -1,4 +1,4 @@
-package ${package}.webapp;
+package ${package}.adapters.inbound.rest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +17,7 @@ import java.net.http.HttpResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(
-        classes = ${package}.webapp.MyAppApplication.class,
+        classes = ${package}.adapters.inbound.rest.InboundRestApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 class CustomerRegistrationIT {

@@ -33,14 +33,15 @@ Avoid JUnit assertion methods in generated tests unless a specific JUnit API is 
 - `application`: unit tests for use-case orchestration using in-memory fakes for outbound ports.
 - `adapters/inbound-rest`: controller, DTO mapping, gateway JWT claim mapping, and `ProblemDetail` error mapping tests.
 - `adapters/inbound-kafka`: Testcontainers Kafka listener tests for topic, JSON deserialization, event conversion, and WireMock-backed client calls.
-- `webapp`: full Spring Boot integration tests that verify module composition, OpenAPI output, security, and persistence.
+- `adapters/inbound-rest`: full Spring Boot integration tests that verify REST composition, OpenAPI output, security, and persistence.
+- `webapp`: frontend build/tests only.
 - `client`: WireMock-backed contract tests when paths, payloads, headers, or error handling change.
 
 ## Testcontainers
 
 The generated integration tests use Testcontainers where the behavior depends on real infrastructure:
 
-- PostgreSQL in `webapp` integration tests.
+- PostgreSQL in `adapters/inbound-rest` integration tests.
 - Kafka in `adapters/inbound-kafka` integration tests.
 
 Prefer static `@Container` fields for one container per test class. Do not enable parallel execution for Testcontainers-backed integration tests by default.

@@ -5,7 +5,8 @@ WORKDIR /app
 
 RUN groupadd --system spring && useradd --system --gid spring spring
 
-COPY webapp/target/*-exec.jar /app/app.jar
+ARG SERVICE_MODULE=adapters/inbound-rest
+COPY ${d}{SERVICE_MODULE}/target/*-exec.jar /app/app.jar
 
 USER spring:spring
 

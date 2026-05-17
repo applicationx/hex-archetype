@@ -1,14 +1,16 @@
 # Inbound REST Adapter Module
 
-This module exposes application use cases over HTTP. It is an inbound adapter: requests enter the system here and are translated into application commands.
+This module is the executable Spring Boot HTTP service for `${artifactId}`. Requests enter the system here and are translated into application commands.
 
 **Responsibilities**
 
 - Own REST controllers and HTTP route mappings.
 - Own HTTP request and response DTOs.
 - Own OpenAPI/Swagger annotations that describe REST operations and DTO schemas.
+- Own the Spring Boot REST application entry point and HTTP runtime configuration.
 - Convert transport DTOs into application commands and domain-facing response values.
 - Keep HTTP-specific validation, status codes, and JSON shape out of the application and domain modules.
+- Publish integration events to Kafka after local application events when Kafka publishing is enabled.
 
 **Current Contents**
 
@@ -20,9 +22,15 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 - `CustomerRestConverter`: converts between REST DTOs and application/domain types.
 - `GatewayUserMapper`: converts JWT claims into REST-facing user data.
 - `RestExceptionHandler`: maps application and validation errors into RFC 9457 `ProblemDetail` responses.
+- `InboundRestApplication`: Spring Boot entry point for the HTTP service.
+- `ApplicationWiringConfig`: explicit application-service wiring for the REST runtime.
+- `SecurityConfig`: resource-server security for tokens relayed by `spring-gateway-base`.
+- `OpenApiConfig`: Swagger/OpenAPI metadata and OAuth2 login configuration.
+- `CustomerRegisteredKafkaPublisher`: publishes the customer registration integration event to Kafka when enabled.
 - `springdoc-openapi-starter-webmvc-ui`: generates `/v3/api-docs` and Swagger UI from Spring MVC mappings and OpenAPI annotations.
 - `CustomerControllerTest`: AssertJ-based adapter test for controller/use-case delegation and gateway JWT claim mapping.
 - `RestExceptionHandlerTest`: AssertJ-based test for REST error response mapping.
+- `CustomerRegistrationIT`: Spring Boot integration test using Testcontainers PostgreSQL.
 
 **Published HTTP Contract**
 
@@ -32,9 +40,9 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 
 **Dependency Direction**
 
-- This module may depend on `application`.
+- This module may depend on `application` and outbound adapters needed by the REST runtime.
 - This module receives `RegisterCustomerUseCase` and `GetCustomerUseCase` from the application layer.
-- This module must not depend on `webapp`, `client`, or outbound adapter modules.
+- This module must not depend on `webapp`, `client`, or `adapters/inbound-kafka`.
 - REST controllers must not initiate service-to-service HTTP calls.
 - Do not put REST-to-REST fanout behind application outbound ports for request/response flows. Browser-facing workflows that need multiple services belong in `spring-gateway-base` composition endpoints.
 - Event-driven cross-service calls are allowed from `adapters/inbound-kafka` through the generated client, with those HTTP edges covered by WireMock integration tests.
@@ -58,7 +66,17 @@ Generated applications expose:
 - YAML OpenAPI document: `/v3/api-docs.yaml`
 - Swagger UI: `/swagger-ui.html`
 
-For Kubernetes, deployment-specific REST settings are supplied through Spring Cloud Config Client in `webapp`. Keep REST endpoint code here, but put runtime values such as CORS, servlet settings, actuator exposure, or public URLs in Config Server under `services/${artifactId}/${artifactId}-kubernetes.yml`.
+For Kubernetes, deployment-specific REST settings are supplied through Spring Cloud Config Client in this module. Keep runtime values such as CORS, servlet settings, actuator exposure, issuer URI, Swagger OAuth client, datasource URL, and public URLs in Config Server under `services/${artifactId}/${artifactId}-kubernetes.yml`.
+
+**Local Development**
+
+From the generated project root:
+
+```bash
+mvn -pl adapters/inbound-rest -am spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+The `dev` profile uses the root `compose.yaml` through Spring Boot Docker Compose support, starts PostgreSQL and Kafka if needed, and enables the Kafka publisher example.
 
 **Gateway User**
 

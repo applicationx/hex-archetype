@@ -9,7 +9,7 @@ On a push to `main`, `.github/workflows/deploy.yml`:
 
 1. Runs on the repository-scoped ARC runner named `arc-${artifactId}`.
 2. Builds and tests with Maven and Java `${javaVersion}`.
-3. Packages the executable Spring Boot jar from `webapp`.
+3. Packages the executable Spring Boot jar from `adapters/inbound-rest` by default.
 4. Builds the root `Dockerfile` with in-cluster BuildKit at `buildkitd.buildkit.svc.cluster.local:1234`.
 5. Pushes `docker.appx-labs.com/docker/${artifactId}:${d}{GITHUB_SHA}` and `docker.appx-labs.com/docker/${artifactId}:main`.
 6. Updates `helm/${artifactId}/values.yaml` with the immutable commit SHA.
