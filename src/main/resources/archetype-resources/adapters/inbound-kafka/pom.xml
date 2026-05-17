@@ -69,5 +69,12 @@
       <artifactId>spring-boot-testcontainers</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.wiremock.integrations</groupId>
+      <artifactId>wiremock-spring-boot</artifactId>
+      <version>${d}{wiremock-spring-boot.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

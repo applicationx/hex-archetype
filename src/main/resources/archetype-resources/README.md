@@ -105,6 +105,8 @@ Run the full test suite with `mvn -B -ntp verify`. Unit tests use `*Test.java`; 
 
 See `docs/TESTING.md` for module-specific test placement, Testcontainers guidance, and AssertJ assertion conventions.
 
+For service-to-service HTTP tests, use WireMock by default. REST controllers should not initiate outbound service calls; Kafka-triggered workflows may call other services through application outbound ports and HTTP adapters, and those HTTP edges should be stubbed with WireMock in integration tests.
+
 **Gateway User**
 
 `spring-gateway-base` relays the authenticated actor or impersonated user token to downstream services as `Authorization: Bearer ...`. This service validates that JWT with Spring Security resource-server support. The REST adapter includes `/api/v1/customers/me` as a small example of reading the current gateway user from JWT claims.

@@ -10,6 +10,7 @@ This module receives Kafka records and invokes application use cases. It is an i
 - Kafka message DTOs that represent the wire payload consumed from Kafka.
 - Converters from Kafka message DTOs into application commands.
 - Testcontainers-based Kafka smoke tests for listener wiring.
+- WireMock-backed tests when Kafka-triggered workflows call other services through outbound HTTP clients.
 
 **Does Not Own**
 
@@ -23,6 +24,8 @@ This module receives Kafka records and invokes application use cases. It is an i
 `adapters/inbound-kafka` depends on `application` and calls inbound ports such as `RegisterCustomerUseCase`.
 
 Never make `application` depend on this module. The application layer must not know Kafka exists.
+
+Kafka-triggered workflows may call other services, but the call should go through an application outbound port and an outbound HTTP adapter. Keep the listener focused on transport concerns: consume the message, convert it to an application command, and call the use case.
 
 **Runtime Composition**
 
@@ -49,3 +52,4 @@ customer:
 - Keep message records transport-shaped. Do not reuse JPA entities, REST request DTOs, or domain objects as Kafka payloads.
 - Add retry, error-handler, dead-letter, and concurrency configuration in `webapp` unless it is specific to one listener.
 - Add a Testcontainers Kafka adapter test when listener topics, message DTOs, deserialization settings, or command conversion changes. Use AssertJ assertions.
+- Add WireMock-backed integration tests when a Kafka-triggered use case calls another HTTP service. Stub the remote service and assert the request path, method, headers, payload, and client-visible error behavior.

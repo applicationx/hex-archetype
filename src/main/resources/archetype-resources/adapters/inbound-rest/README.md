@@ -28,6 +28,7 @@ This module exposes application use cases over HTTP. It is an inbound adapter: r
 - This module may depend on `application`.
 - This module receives a `RegisterCustomerUseCase` from the application layer.
 - This module must not depend on `webapp`, `client`, or outbound adapter modules.
+- REST controllers must not initiate service-to-service HTTP calls. Put cross-service dependencies behind application outbound ports and implement them in outbound adapters.
 
 **Where To Make Changes**
 
@@ -66,3 +67,4 @@ Use `GatewayUserMapper` when an endpoint needs transport-safe user details from 
 - Do not inject JPA repositories or external clients directly into controllers.
 - Do not return JPA entities or domain objects directly if the API contract needs stable DTOs.
 - Do not let generic exceptions define public API behavior. Translate typed application exceptions into `ProblemDetail` responses here.
+- Do not add Feign, WireMock, or other service-client dependencies here. REST adapter tests should verify request mapping, validation, auth claim mapping, and error responses.

@@ -34,6 +34,7 @@ Avoid JUnit assertion methods in generated tests unless a specific JUnit API is 
 - `adapters/inbound-rest`: controller, DTO mapping, gateway JWT claim mapping, and `ProblemDetail` error mapping tests.
 - `adapters/inbound-kafka`: Testcontainers Kafka listener tests for topic, JSON deserialization, and command conversion.
 - `webapp`: full Spring Boot integration tests that verify module composition, OpenAPI output, security, and persistence.
+- `client`: WireMock-backed contract tests when paths, payloads, headers, or error handling change.
 
 ## Testcontainers
 
@@ -45,6 +46,18 @@ The generated integration tests use Testcontainers where the behavior depends on
 Prefer static `@Container` fields for one container per test class. Do not enable parallel execution for Testcontainers-backed integration tests by default.
 
 When Spring Boot has first-class connection support for a container, prefer `@ServiceConnection`. Use `@DynamicPropertySource` when a test owns custom wiring and needs explicit property registration.
+
+## Service-to-service HTTP Calls
+
+Use WireMock as the default test double for HTTP calls to other services. This keeps the test inside the service boundary while exercising the real HTTP client, serialization, status-code handling, retries, and timeout behavior.
+
+Use this split:
+
+- `adapters/inbound-rest`: no service-to-service HTTP calls from controllers. Controllers call application inbound ports only. If a REST endpoint appears to need another service, move that dependency behind an application outbound port and implement it in an outbound adapter.
+- `adapters/inbound-kafka`: Kafka-triggered workflows may call other services through application outbound ports and HTTP client adapters. Test those outbound HTTP calls with WireMock.
+- `client`: test the reusable client contract with WireMock when paths, payloads, headers, or error handling change.
+
+Prefer Spring Cloud Contract Stub Runner when the provider publishes formal consumer stubs and the goal is consumer-driven contract verification. Prefer real Testcontainers services only when the dependency is infrastructure or when the integration behavior cannot be represented well as HTTP stubs.
 
 ## REST Error Contracts
 

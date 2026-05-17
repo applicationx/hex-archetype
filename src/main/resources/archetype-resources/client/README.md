@@ -44,6 +44,7 @@ Spring Cloud OpenFeign can wrap methods with Spring Cloud CircuitBreaker when en
 - Add or update client DTOs here when the public HTTP API changes.
 - Add Feign methods here for new public endpoints that other services should call.
 - Keep paths and payloads aligned with `adapters/inbound-rest`.
+- Use WireMock-backed tests when changing paths, payloads, headers, status handling, or error mapping for this client.
 
 **Avoid**
 
