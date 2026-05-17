@@ -13,6 +13,7 @@ Default generated stack:
 - Kubernetes config: Spring Cloud Config Client in `webapp`, with AppX Config Server defaults and shared-chart values example.
 - AppX dev deployment: generated Dockerfile, GitHub Actions BuildKit workflow, and `helm/<artifactId>/values.yaml` for Argo CD/shared Helm chart deployment on push to `main`.
 - Gateway integration: generated `docs/GATEWAY_INTEGRATION.md` tells an AI how to wire the service into `spring-gateway-base`.
+- Local development: generated `compose.yaml`, `spring-boot-docker-compose`, and `docs/LOCAL_DEVELOPMENT.md` for PostgreSQL/Kafka-backed local runs.
 
 ## Prerequisites
 
@@ -92,6 +93,7 @@ If Maven mirrors all repositories through `maven-public`, make sure `nexus-snaps
 - Includes Kubernetes Config Server bootstrap support for the executable `webapp`, which hosts the inbound REST and inbound Kafka adapters.
 - Builds a real React/Vite frontend in the generated `webapp` module and serves it from Spring Boot static resources.
 - Generates the AppX dev deployment path used by `spring-gateway-base` and `appx-web`: ARC runner, in-cluster BuildKit, Harbor image push, Git image-tag promotion, and Argo CD shared-chart values.
+- Generates a Docker Compose-backed `dev` profile for local PostgreSQL, Kafka, inbound REST, inbound Kafka, and OpenAPI checks without using k3s.
 - Includes common build quality defaults (unit/integration split, coverage, enforcer rules).
 - Includes CI-friendly versioning support (`${revision}`) for consistent module versions.
 - Reduces setup time for new services and improves consistency in code reviews.

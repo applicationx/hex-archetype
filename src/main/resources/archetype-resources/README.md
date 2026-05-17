@@ -11,12 +11,14 @@ Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetyp
 - `adapters/outbound-jpa`: JPA adapter.
 - `webapp`: Spring Boot composition root with a React/Vite frontend.
 - `client`: reusable OpenFeign HTTP client module plus a `tests` classifier JAR with DTO fixtures.
+- `compose.yaml`: local development PostgreSQL and Kafka backing services.
 - `Dockerfile`: runtime image for the executable Spring Boot `webapp` jar.
 - `.github/workflows/deploy.yml`: AppX dev workflow that builds, tests, pushes an image through in-cluster BuildKit, and promotes the image tag in Git on `main`.
 - `helm/${artifactId}/values.yaml`: app-local values consumed by Argo CD with the shared `appx-spring-boot` chart.
 - `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
 - `docs/APPX_DEV_DEPLOYMENT.md`: AppX k3s dev deployment setup for GitHub Actions, ARC runners, BuildKit, Argo CD, and the shared Helm chart.
 - `docs/GATEWAY_INTEGRATION.md`: AI-oriented guide for adding this service behind `spring-gateway-base`.
+- `docs/LOCAL_DEVELOPMENT.md`: local run guide for Spring Boot Docker Compose, PostgreSQL, Kafka, and OpenAPI.
 - `docs/TESTING.md`: generated test strategy and integration-test guidance.
 - `deploy/appx-spring-boot/values.yaml`: compatibility values example for the AppX shared Spring Boot Helm chart.
 
@@ -38,6 +40,14 @@ mvn -pl webapp -am spring-boot:run
 ```
 
 The `webapp` module builds the React frontend from `webapp/src/main/frontend` and serves the production assets from Spring Boot static resources.
+
+For local development with PostgreSQL and Kafka backing services:
+
+```bash
+mvn -pl webapp -am spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+The `dev` profile uses `spring-boot-docker-compose` and `compose.yaml` to start local PostgreSQL and Kafka. See `docs/LOCAL_DEVELOPMENT.md`.
 
 **OpenAPI And Swagger UI**
 
@@ -86,7 +96,7 @@ It also attaches a test JAR so other services can reuse client DTO fixtures in t
 
 The application service publishes a `CustomerRegistered` domain event after durable customer registration. When Kafka is enabled, `CustomerRegisteredKafkaPublisher` forwards that domain event to the `customer-registered-events` topic. `CustomerRegistrationKafkaListener` consumes the Kafka event, extracts the customer id, and uses the generated OpenFeign client to fetch the full customer payload from the REST API. Its integration test uses Testcontainers Kafka plus WireMock for the HTTP client edge.
 
-Kafka listener startup is disabled by default so local runs and generated smoke tests do not require a broker. Enable it with:
+Kafka listener startup is disabled by default so generated smoke tests and lightweight local runs do not require a broker. The `dev` profile enables it and starts local Kafka through Docker Compose. Enable it manually with:
 
 ```yaml
 customer:

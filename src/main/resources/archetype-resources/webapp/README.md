@@ -10,7 +10,7 @@ This module is the Spring Boot composition root and browser frontend for `${arti
 - Adapt application event-publication ports to Spring's `ApplicationEventPublisher`.
 - Configure component scanning, JPA repository scanning, and entity scanning.
 - Enable OpenFeign client scanning for the generated client module.
-- Own runtime configuration files such as `application.yml`.
+- Own runtime configuration files such as `application.yml` and local development profiles.
 - Own end-to-end or integration tests that start the Spring application context.
 
 **Current Contents**
@@ -18,6 +18,7 @@ This module is the Spring Boot composition root and browser frontend for `${arti
 - `MyAppApplication`: Spring Boot entry point with component scanning, JPA scanning, entity scanning, and Feign client scanning.
 - `ApplicationWiringConfig`: explicit application-service wiring.
 - `application.yml`: local runtime defaults.
+- `application-dev.yml`: local Docker Compose-backed PostgreSQL and Kafka development profile.
 - `src/main/frontend`: React/Vite app that builds to Spring Boot static resources.
 - `CustomerRegistrationIT`: Spring Boot integration test using Testcontainers PostgreSQL.
 - Spring Cloud Config Client dependency for Kubernetes runtime configuration.
@@ -95,3 +96,13 @@ cd webapp/src/main/frontend
 npm install
 npm run dev
 ```
+
+**Local Backing Services**
+
+From the generated project root:
+
+```bash
+mvn -pl webapp -am spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+The `dev` profile uses the root `compose.yaml` through Spring Boot Docker Compose support, starts PostgreSQL and Kafka, and enables the Kafka publisher/listener example.
