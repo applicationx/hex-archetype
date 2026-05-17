@@ -11,6 +11,7 @@ Default generated stack:
 - Maven POM model: `4.0.0`
 - Modules: `domain`, `application`, `adapters/inbound-rest`, `adapters/inbound-kafka`, `adapters/outbound-jpa`, `webapp` (Spring Boot + React/Vite frontend), `client`
 - Kubernetes config: Spring Cloud Config Client in `webapp`, with AppX Config Server defaults and shared-chart values example.
+- AppX dev deployment: generated Dockerfile, GitHub Actions BuildKit workflow, and `helm/<artifactId>/values.yaml` for Argo CD/shared Helm chart deployment on push to `main`.
 
 ## Prerequisites
 
@@ -89,6 +90,7 @@ If Maven mirrors all repositories through `maven-public`, make sure `nexus-snaps
 - Generates OpenAPI docs and Swagger UI for the inbound REST adapter through springdoc-openapi.
 - Includes Kubernetes Config Server bootstrap support for the executable `webapp`, which hosts the inbound REST and inbound Kafka adapters.
 - Builds a real React/Vite frontend in the generated `webapp` module and serves it from Spring Boot static resources.
+- Generates the AppX dev deployment path used by `spring-gateway-base` and `appx-web`: ARC runner, in-cluster BuildKit, Harbor image push, Git image-tag promotion, and Argo CD shared-chart values.
 - Includes common build quality defaults (unit/integration split, coverage, enforcer rules).
 - Includes CI-friendly versioning support (`${revision}`) for consistent module versions.
 - Reduces setup time for new services and improves consistency in code reviews.
@@ -98,7 +100,7 @@ If Maven mirrors all repositories through `maven-public`, make sure `nexus-snaps
 - Defaults are opinionated (Spring MVC + JPA + explicit converter/factory mapping); not all teams need this stack.
 - Generated project enforces modern toolchain versions (Maven 3.9.15+ / Java 25).
 - Testcontainers integration test is a skeleton (`contextLoads`) and needs real assertions.
-- No complete GitOps application scaffolding in generated output yet; `deploy/appx-spring-boot/values.yaml` is a starting point for the AppX shared chart.
+- The generated project includes app-local deployment artifacts, but the matching `k3s-dev` Argo CD Application/AppProject and ARC runner scale set still need to be added to the cluster GitOps repository.
 - No archetype integration-test module (`src/it`) in this archetype project yet.
 
 ## Future Extensions

@@ -1,0 +1,116 @@
+#set($d = '$')
+name: Build and deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${artifactId}-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  DEFAULT_BRANCH: main
+  BUILDKIT_VERSION: v0.29.0
+  BUILDKIT_HOST: tcp://buildkitd.buildkit.svc.cluster.local:1234
+  IMAGE_REPOSITORY: docker.appx-labs.com/docker/${artifactId}
+  VALUES_FILE: helm/${artifactId}/values.yaml
+
+jobs:
+  build-push-and-promote:
+    runs-on: arc-${artifactId}
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          distribution: temurin
+          java-version: '${javaVersion}'
+          cache: maven
+
+      - name: Test and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mvn -B -ntp verify
+          mvn -B -ntp -pl webapp -am package -DskipTests
+
+      - name: Install buildctl
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${d}{RUNNER_TEMP}/buildkit"
+          curl -fsSL \
+            "https://github.com/moby/buildkit/releases/download/${d}{BUILDKIT_VERSION}/buildkit-${d}{BUILDKIT_VERSION}.linux-amd64.tar.gz" \
+            -o "${d}{RUNNER_TEMP}/buildkit.tgz"
+          tar -xzf "${d}{RUNNER_TEMP}/buildkit.tgz" -C "${d}{RUNNER_TEMP}/buildkit"
+          echo "${d}{RUNNER_TEMP}/buildkit/bin" >> "${d}{GITHUB_PATH}"
+
+      - name: Configure registry auth
+        shell: bash
+        env:
+          REGISTRY_USERNAME: ${d}{{ secrets.DOCKER_APPX_LABS_USERNAME }}
+          REGISTRY_PASSWORD: ${d}{{ secrets.DOCKER_APPX_LABS_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${d}{HOME}/.docker"
+          auth="$(printf '%s:%s' "${d}{REGISTRY_USERNAME}" "${d}{REGISTRY_PASSWORD}" | base64 | tr -d '\n')"
+          cat > "${d}{HOME}/.docker/config.json" <<JSON
+          {
+            "auths": {
+              "docker.appx-labs.com": {
+                "auth": "${d}{auth}"
+              }
+            }
+          }
+          JSON
+
+      - name: Build and push image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_names="${d}{IMAGE_REPOSITORY}:${d}{GITHUB_SHA}"
+          if [ "${d}{GITHUB_REF_NAME}" = "${d}{DEFAULT_BRANCH}" ]; then
+            image_names="${d}{image_names},${d}{IMAGE_REPOSITORY}:${d}{DEFAULT_BRANCH}"
+          fi
+          buildctl \
+            --addr "${d}{BUILDKIT_HOST}" \
+            --tlscacert /buildkit-certs/ca.crt \
+            --tlscert /buildkit-certs/tls.crt \
+            --tlskey /buildkit-certs/tls.key \
+            build \
+            --frontend dockerfile.v0 \
+            --local context=. \
+            --local dockerfile=. \
+            --opt platform=linux/amd64 \
+            --import-cache type=registry,ref="${d}{IMAGE_REPOSITORY}:buildcache" \
+            --export-cache type=registry,ref="${d}{IMAGE_REPOSITORY}:buildcache",mode=max \
+            --output "type=image,\"name=${d}{image_names}\",push=true"
+
+      - name: Promote image tag for Argo CD
+        if: github.ref_name == 'main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i -E "/^image:/,/^[^ ]/ s/^([[:space:]]*tag: ).*/\1\"${d}{GITHUB_SHA}\"/" "${d}{VALUES_FILE}"
+          sed -i -E "s/^([[:space:]]*serviceVersion: ).*/\1\"${d}{GITHUB_SHA}\"/" "${d}{VALUES_FILE}"
+          if git diff --quiet -- "${d}{VALUES_FILE}"; then
+            echo "No Helm values update required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${d}{VALUES_FILE}"
+          git commit -m "chore: deploy ${artifactId} image ${d}{GITHUB_SHA::12} [skip ci]"
+          git push

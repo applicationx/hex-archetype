@@ -1,0 +1,81 @@
+replicaCount: 1
+
+nameOverride: ${artifactId}
+
+image:
+  repository: docker.appx-labs.com/docker/${artifactId}
+  tag: "main"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-docker
+
+service:
+  port: 8080
+
+env:
+  - name: BPL_JVM_THREAD_COUNT
+    value: "50"
+  - name: SPRING_PROFILES_ACTIVE
+    value: "kubernetes"
+  - name: CONFIG_SERVER_URL
+    value: "http://config-server.config-system.svc.cluster.local:8888"
+  - name: ZITADEL_ISSUER_URI
+    value: "https://auth.appx-labs.com"
+  - name: SWAGGER_UI_OAUTH_CLIENT_ID
+    value: "replace-me"
+
+observability:
+  enabled: true
+  serviceName: ${artifactId}
+  serviceVersion: "main"
+  environment: dev
+  otlpEndpoint: https://otel.appx-labs.com
+  metrics:
+    enabled: true
+    path: /actuator/prometheus
+    port: "8080"
+
+httproute:
+  enabled: false
+  hostnames:
+    - ${artifactId}.appx-cloud.com
+  parentRefs:
+    - name: shared-gateway
+      namespace: networking
+      sectionName: https
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  failureThreshold: 6
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 45
+  periodSeconds: 20
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL

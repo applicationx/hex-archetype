@@ -11,9 +11,13 @@ Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetyp
 - `adapters/outbound-jpa`: JPA adapter.
 - `webapp`: Spring Boot composition root with a React/Vite frontend.
 - `client`: reusable OpenFeign HTTP client module plus a `tests` classifier JAR with DTO fixtures.
+- `Dockerfile`: runtime image for the executable Spring Boot `webapp` jar.
+- `.github/workflows/deploy.yml`: AppX dev workflow that builds, tests, pushes an image through in-cluster BuildKit, and promotes the image tag in Git on `main`.
+- `helm/${artifactId}/values.yaml`: app-local values consumed by Argo CD with the shared `appx-spring-boot` chart.
 - `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
+- `docs/APPX_DEV_DEPLOYMENT.md`: AppX k3s dev deployment setup for GitHub Actions, ARC runners, BuildKit, Argo CD, and the shared Helm chart.
 - `docs/TESTING.md`: generated test strategy and integration-test guidance.
-- `deploy/appx-spring-boot/values.yaml`: starting values file for the AppX shared Spring Boot Helm chart.
+- `deploy/appx-spring-boot/values.yaml`: compatibility values example for the AppX shared Spring Boot Helm chart.
 
 **Requirements**
 
@@ -105,7 +109,7 @@ env:
 
 Put non-secret Kubernetes runtime config in `applicationx/spring-config` under `services/${artifactId}/`. Put secrets in Vault under `secret/config/${artifactId}/kubernetes`.
 
-See `docs/KUBERNETES_CONFIG_SERVER.md` for the full setup.
+Use `helm/${artifactId}/values.yaml` when wiring the service into the AppX shared Spring Boot Helm chart. See `docs/APPX_DEV_DEPLOYMENT.md` for the GitHub Actions, BuildKit, Argo CD, and ARC runner setup, and `docs/KUBERNETES_CONFIG_SERVER.md` for the config-server setup.
 
 **Testing**
 

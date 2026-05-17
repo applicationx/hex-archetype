@@ -162,16 +162,17 @@ Use this workflow when changing the archetype template.
 1. Update files under `src/main/resources/archetype-resources/`.
 2. Update `src/main/resources/META-INF/maven/archetype-metadata.xml` for every added or moved generated file.
 3. Update root `README.md` and generated module `README.md` files when behavior or module responsibilities change.
-4. Run local install:
+4. For deployment template changes, compare against `/home/appx/github/spring-gateway-base/.github/workflows/deploy.yml`, `/home/appx/github/appx-web/.github/workflows/deploy.yml`, and the matching `k3s-dev/manifests/argocd/*-application.yaml` files before publishing.
+5. Run local install:
 
 ```bash
 mvn -B -ntp clean install
 ```
 
-5. Generate a disposable project outside this repository.
-6. Run `mvn -B -ntp verify` in the generated project.
-7. Publish to Nexus with `mvn -B -ntp clean deploy`, or explicit `deploy-file` if needed.
-8. Validate Nexus resolution with an empty `-Dmaven.repo.local` path.
+6. Generate a disposable project outside this repository.
+7. Run `mvn -B -ntp verify` in the generated project.
+8. Publish to Nexus with `mvn -B -ntp clean deploy`, or explicit `deploy-file` if needed.
+9. Validate Nexus resolution with an empty `-Dmaven.repo.local` path.
 
 ## Versioning Guidance
 
