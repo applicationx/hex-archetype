@@ -12,6 +12,7 @@ Default generated stack:
 - Modules: `domain`, `application`, `adapters/inbound-rest`, `adapters/inbound-kafka`, `adapters/outbound-jpa`, `webapp` (Spring Boot + React/Vite frontend), `client`
 - Kubernetes config: Spring Cloud Config Client in `webapp`, with AppX Config Server defaults and shared-chart values example.
 - AppX dev deployment: generated Dockerfile, GitHub Actions BuildKit workflow, and `helm/<artifactId>/values.yaml` for Argo CD/shared Helm chart deployment on push to `main`.
+- Gateway integration: generated `docs/GATEWAY_INTEGRATION.md` tells an AI how to wire the service into `spring-gateway-base`.
 
 ## Prerequisites
 

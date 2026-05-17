@@ -16,6 +16,7 @@ Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetyp
 - `helm/${artifactId}/values.yaml`: app-local values consumed by Argo CD with the shared `appx-spring-boot` chart.
 - `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
 - `docs/APPX_DEV_DEPLOYMENT.md`: AppX k3s dev deployment setup for GitHub Actions, ARC runners, BuildKit, Argo CD, and the shared Helm chart.
+- `docs/GATEWAY_INTEGRATION.md`: AI-oriented guide for adding this service behind `spring-gateway-base`.
 - `docs/TESTING.md`: generated test strategy and integration-test guidance.
 - `deploy/appx-spring-boot/values.yaml`: compatibility values example for the AppX shared Spring Boot Helm chart.
 

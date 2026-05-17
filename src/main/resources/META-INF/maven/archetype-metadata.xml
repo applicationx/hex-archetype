@@ -26,6 +26,7 @@
         <include>webapp/src/main/frontend/package.json</include>
         <include>webapp/src/main/frontend/index.html</include>
         <include>docs/APPX_DEV_DEPLOYMENT.md</include>
+        <include>docs/GATEWAY_INTEGRATION.md</include>
         <include>docs/KUBERNETES_CONFIG_SERVER.md</include>
         <include>docs/TESTING.md</include>
         <include>deploy/appx-spring-boot/values.yaml</include>
