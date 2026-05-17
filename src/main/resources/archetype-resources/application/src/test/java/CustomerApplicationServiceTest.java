@@ -14,10 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CustomerApplicationServiceTest {
 
@@ -29,13 +26,15 @@ class CustomerApplicationServiceTest {
 
         var id = service.register(new RegisterCustomerCommand("x@y"));
 
-        assertNotNull(id);
-        assertTrue(fakeRepo.data.containsKey("x@y"));
-        assertEquals(1, eventPublisher.events.size());
+        assertThat(id).isNotNull();
+        assertThat(fakeRepo.data).containsKey("x@y");
+        assertThat(eventPublisher.events).hasSize(1);
 
-        var event = assertInstanceOf(CustomerRegistered.class, eventPublisher.events.getFirst());
-        assertEquals(id, event.customerId());
-        assertEquals("x@y", event.email().value());
+        assertThat(eventPublisher.events.getFirst())
+                .isInstanceOfSatisfying(CustomerRegistered.class, event -> {
+                    assertThat(event.customerId()).isEqualTo(id);
+                    assertThat(event.email().value()).isEqualTo("x@y");
+                });
     }
 
     static final class InMemoryCustomerRepository implements CustomerRepository {

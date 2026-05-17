@@ -2,19 +2,20 @@ package ${package}.domain.model;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class EmailAddressTest {
 
     @Test
     void rejectsInvalidEmail() {
-        assertThrows(IllegalArgumentException.class, () -> new EmailAddress("not-an-email"));
+        assertThatThrownBy(() -> new EmailAddress("not-an-email"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void acceptsSimpleValidEmail() {
         var email = new EmailAddress("a@b");
-        assertEquals("a@b", email.value());
+        assertThat(email.value()).isEqualTo("a@b");
     }
 }
