@@ -1,0 +1,62 @@
+# Inbound REST Adapter Module
+
+This module exposes application use cases over HTTP. It is an inbound adapter: requests enter the system here and are translated into application commands.
+
+**Responsibilities**
+
+- Own REST controllers and HTTP route mappings.
+- Own HTTP request and response DTOs.
+- Own OpenAPI/Swagger annotations that describe REST operations and DTO schemas.
+- Convert transport DTOs into application commands and domain-facing response values.
+- Keep HTTP-specific validation, status codes, and JSON shape out of the application and domain modules.
+
+**Current Contents**
+
+- `CustomerController`: REST endpoint for registering customers.
+- `RegisterCustomerRequest`: HTTP request DTO.
+- `RegisterCustomerResponse`: HTTP response DTO.
+- `GatewayUserResponse`: HTTP response DTO for the authenticated gateway actor.
+- `CustomerRestConverter`: converts between REST DTOs and application/domain types.
+- `GatewayUserMapper`: converts JWT claims into REST-facing user data.
+- `springdoc-openapi-starter-webmvc-ui`: generates `/v3/api-docs` and Swagger UI from Spring MVC mappings and OpenAPI annotations.
+
+**Dependency Direction**
+
+- This module may depend on `application`.
+- This module receives a `RegisterCustomerUseCase` from the application layer.
+- This module must not depend on `webapp`, `client`, or outbound adapter modules.
+
+**Where To Make Changes**
+
+- Add new REST endpoints here when exposing existing or new use cases over HTTP.
+- Add REST-specific DTOs here when the wire format differs from application commands.
+- Add converter logic here when translating HTTP data into application commands.
+- Add `@Operation`, `@ApiResponse`, `@Tag`, and `@Schema` annotations here when changing API contracts.
+
+**OpenAPI**
+
+This module uses `springdoc-openapi-starter-webmvc-ui` because the generated service uses Spring MVC through `spring-boot-starter-web`.
+
+Generated applications expose:
+
+- JSON OpenAPI document: `/v3/api-docs`
+- YAML OpenAPI document: `/v3/api-docs.yaml`
+- Swagger UI: `/swagger-ui.html`
+
+For Kubernetes, deployment-specific REST settings are supplied through Spring Cloud Config Client in `webapp`. Keep REST endpoint code here, but put runtime values such as CORS, servlet settings, actuator exposure, or public URLs in Config Server under `services/${artifactId}/${artifactId}-kubernetes.yml`.
+
+**Gateway User**
+
+`spring-gateway-base` relays the authenticated actor or impersonated user as a Bearer token. REST endpoints can read the current user with:
+
+```java
+@AuthenticationPrincipal Jwt jwt
+```
+
+Use `GatewayUserMapper` when an endpoint needs transport-safe user details from common JWT claims such as `sub`, `preferred_username`, `email`, and `name`.
+
+**Avoid**
+
+- Do not implement business rules here; call application use cases.
+- Do not inject JPA repositories or external clients directly into controllers.
+- Do not return JPA entities or domain objects directly if the API contract needs stable DTOs.

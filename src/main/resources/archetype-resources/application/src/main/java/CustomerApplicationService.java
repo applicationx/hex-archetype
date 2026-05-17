@@ -3,6 +3,8 @@ package ${package}.application.service;
 import ${package}.application.command.RegisterCustomerCommand;
 import ${package}.application.port.in.RegisterCustomerUseCase;
 import ${package}.application.port.out.CustomerRepository;
+import ${package}.application.port.out.DomainEventPublisher;
+import ${package}.domain.event.CustomerRegistered;
 import ${package}.domain.model.Customer;
 import ${package}.domain.model.CustomerId;
 import ${package}.domain.model.EmailAddress;
@@ -12,9 +14,11 @@ import java.util.Objects;
 public final class CustomerApplicationService implements RegisterCustomerUseCase {
 
     private final CustomerRepository customerRepository;
+    private final DomainEventPublisher domainEventPublisher;
 
-    public CustomerApplicationService(CustomerRepository customerRepository) {
+    public CustomerApplicationService(CustomerRepository customerRepository, DomainEventPublisher domainEventPublisher) {
         this.customerRepository = Objects.requireNonNull(customerRepository, "customerRepository must not be null");
+        this.domainEventPublisher = Objects.requireNonNull(domainEventPublisher, "domainEventPublisher must not be null");
     }
 
     @Override
@@ -26,6 +30,10 @@ public final class CustomerApplicationService implements RegisterCustomerUseCase
         });
 
         Customer customer = Customer.registerNew(email);
-        return customerRepository.save(customer).id();
+        Customer saved = customerRepository.save(customer);
+
+        domainEventPublisher.publish(new CustomerRegistered(saved.id(), saved.email(), saved.registeredAt()));
+
+        return saved.id();
     }
 }

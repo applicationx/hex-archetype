@@ -2,28 +2,96 @@
 
 Hexagonal Spring Boot service generated from the `hexagonal-spring-boot-archetype` archetype.
 
-## Modules
+**Modules**
 
 - `domain`: domain model and rules.
 - `application`: use cases and ports.
 - `adapters/inbound-rest`: REST adapter.
+- `adapters/inbound-kafka`: Kafka command adapter.
 - `adapters/outbound-jpa`: JPA adapter.
-- `webapp`: Spring Boot composition root.
+- `webapp`: Spring Boot composition root with a React/Vite frontend.
 - `client`: reusable HTTP client module.
+- `docs/KUBERNETES_CONFIG_SERVER.md`: AppX Config Server setup for Kubernetes deployments.
+- `deploy/appx-spring-boot/values.yaml`: starting values file for the AppX shared Spring Boot Helm chart.
 
-## Requirements
+**Requirements**
 
 - Java ${javaVersion}
-- Maven 4+
+- Maven 3.9.15+
 
-## Build
+**Build**
 
 ```bash
 mvn -B -ntp verify
 ```
 
-## Run app
+**Run App**
 
 ```bash
 mvn -pl webapp -am spring-boot:run
 ```
+
+The `webapp` module builds the React frontend from `webapp/src/main/frontend` and serves the production assets from Spring Boot static resources.
+
+**OpenAPI And Swagger UI**
+
+The `adapters/inbound-rest` module uses `springdoc-openapi-starter-webmvc-ui` and OpenAPI annotations on REST endpoints and DTOs.
+
+When the app is running:
+
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- OpenAPI YAML: `http://localhost:8080/v3/api-docs.yaml`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+
+Swagger UI includes an OAuth2 Authorize button for ZITADEL. Set `SWAGGER_UI_OAUTH_CLIENT_ID` for the browser client used by Swagger UI.
+
+**OpenFeign Client**
+
+The `client` module provides a Spring Cloud OpenFeign client interface:
+
+```java
+@EnableFeignClients(basePackageClasses = MyAppClient.class)
+```
+
+Set the target URL with:
+
+```yaml
+${artifactId}:
+  client:
+    url: http://localhost:8080
+```
+
+When Spring Cloud CircuitBreaker is enabled in the consuming app, OpenFeign calls are wrapped in circuit breakers. With `resilience4j-bulkhead` on the classpath, Spring Cloud CircuitBreaker also applies Resilience4j bulkheads.
+
+**Kafka Inbound Adapter**
+
+The `adapters/inbound-kafka` module consumes customer-registration commands from Kafka and invokes the same `RegisterCustomerUseCase` used by the REST adapter.
+
+Kafka listener startup is disabled by default so local runs and generated smoke tests do not require a broker. Enable it with:
+
+```yaml
+customer:
+  registration:
+    kafka:
+      enabled: true
+```
+
+**Kubernetes Config Server**
+
+The executable service is `webapp`; the REST and Kafka modules are adapters loaded by that service. `webapp` includes Spring Cloud Config Client and imports the AppX Config Server by default when deployed with Kubernetes environment variables:
+
+```yaml
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: kubernetes
+  - name: CONFIG_SERVER_URL
+    value: http://config-server.config-system.svc.cluster.local:8888
+```
+
+Put non-secret Kubernetes runtime config in `applicationx/spring-config` under `services/${artifactId}/`. Put secrets in Vault under `secret/config/${artifactId}/kubernetes`.
+
+See `docs/KUBERNETES_CONFIG_SERVER.md` for the full setup.
+
+**Gateway User**
+
+`spring-gateway-base` relays the authenticated actor or impersonated user token to downstream services as `Authorization: Bearer ...`. This service validates that JWT with Spring Security resource-server support. The REST adapter includes `/api/v1/customers/me` as a small example of reading the current gateway user from JWT claims.

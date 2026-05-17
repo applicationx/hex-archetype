@@ -9,18 +9,34 @@
       <defaultValue>25</defaultValue>
     </requiredProperty>
     <requiredProperty key="springBootVersion">
-      <defaultValue>4.0.2</defaultValue>
+      <defaultValue>4.0.6</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="springCloudVersion">
+      <defaultValue>2025.1.1</defaultValue>
     </requiredProperty>
   </requiredProperties>
 
   <fileSets>
     <fileSet filtered="true" packaged="false">
-      <directory>.</directory>
+      <directory></directory>
       <includes>
         <include>pom.xml</include>
         <include>README.md</include>
+        <include>webapp/src/main/frontend/package.json</include>
+        <include>webapp/src/main/frontend/index.html</include>
+        <include>docs/KUBERNETES_CONFIG_SERVER.md</include>
+        <include>deploy/appx-spring-boot/values.yaml</include>
         <include>.gitignore</include>
         <include>.github/workflows/**</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="false" packaged="false">
+      <directory></directory>
+      <includes>
+        <include>webapp/src/main/frontend/tsconfig.json</include>
+        <include>webapp/src/main/frontend/vite.config.ts</include>
+        <include>webapp/src/main/frontend/src/vite-env.d.ts</include>
+        <include>webapp/src/main/frontend/src/**/*</include>
       </includes>
     </fileSet>
   </fileSets>
@@ -29,9 +45,10 @@
     <module name="domain" id="${artifactId}-domain" dir="domain">
       <fileSets>
         <fileSet filtered="true" packaged="false">
-          <directory>.</directory>
+          <directory></directory>
           <includes>
             <include>pom.xml</include>
+            <include>README.md</include>
           </includes>
         </fileSet>
         <fileSet filtered="true" packaged="true">
@@ -52,9 +69,10 @@
     <module name="application" id="${artifactId}-application" dir="application">
       <fileSets>
         <fileSet filtered="true" packaged="false">
-          <directory>.</directory>
+          <directory></directory>
           <includes>
             <include>pom.xml</include>
+            <include>README.md</include>
           </includes>
         </fileSet>
         <fileSet filtered="true" packaged="true">
@@ -75,9 +93,28 @@
     <module name="inbound-rest" id="${artifactId}-adapter-inbound-rest" dir="adapters/inbound-rest">
       <fileSets>
         <fileSet filtered="true" packaged="false">
-          <directory>.</directory>
+          <directory></directory>
           <includes>
             <include>pom.xml</include>
+            <include>README.md</include>
+          </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="true">
+          <directory>src/main/java</directory>
+          <includes>
+            <include>**/*.java</include>
+          </includes>
+        </fileSet>
+      </fileSets>
+    </module>
+
+    <module name="inbound-kafka" id="${artifactId}-adapter-inbound-kafka" dir="adapters/inbound-kafka">
+      <fileSets>
+        <fileSet filtered="true" packaged="false">
+          <directory></directory>
+          <includes>
+            <include>pom.xml</include>
+            <include>README.md</include>
           </includes>
         </fileSet>
         <fileSet filtered="true" packaged="true">
@@ -92,9 +129,10 @@
     <module name="outbound-jpa" id="${artifactId}-adapter-outbound-jpa" dir="adapters/outbound-jpa">
       <fileSets>
         <fileSet filtered="true" packaged="false">
-          <directory>.</directory>
+          <directory></directory>
           <includes>
             <include>pom.xml</include>
+            <include>README.md</include>
           </includes>
         </fileSet>
         <fileSet filtered="true" packaged="true">
@@ -109,9 +147,10 @@
     <module name="webapp" id="${artifactId}-webapp" dir="webapp">
       <fileSets>
         <fileSet filtered="true" packaged="false">
-          <directory>.</directory>
+          <directory></directory>
           <includes>
             <include>pom.xml</include>
+            <include>README.md</include>
           </includes>
         </fileSet>
         <fileSet filtered="true" packaged="true">
@@ -138,9 +177,10 @@
     <module name="client" id="${artifactId}-client" dir="client">
       <fileSets>
         <fileSet filtered="true" packaged="false">
-          <directory>.</directory>
+          <directory></directory>
           <includes>
             <include>pom.xml</include>
+            <include>README.md</include>
           </includes>
         </fileSet>
         <fileSet filtered="true" packaged="true">

@@ -3,19 +3,30 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.wdj176.archetypes</groupId>
+  <groupId>com.appx</groupId>
   <artifactId>hexagonal-spring-boot-archetype</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-archetype</packaging>
 
   <name>Hexagonal Spring Boot Maven Archetype</name>
-  <description>Maven 4 archetype for Spring Boot hexagonal multi-module projects with client module.</description>
+  <description>Maven archetype for Spring Boot hexagonal multi-module projects with client module.</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <archetype.plugin.version>3.4.1</archetype.plugin.version>
     <archetype.packaging.version>3.4.1</archetype.packaging.version>
   </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <url>https://nexus.appx-labs.com/repository/maven-snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>nexus-releases</id>
+      <url>https://nexus.appx-labs.com/repository/maven-releases/</url>
+    </repository>
+  </distributionManagement>
 
   <build>
     <extensions>

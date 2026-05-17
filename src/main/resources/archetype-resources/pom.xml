@@ -1,3 +1,4 @@
+#set($d = '$')
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -5,7 +6,7 @@
 
   <groupId>${groupId}</groupId>
   <artifactId>${artifactId}</artifactId>
-  <version>${symbol_dollar}{revision}</version>
+  <version>${d}{revision}</version>
   <packaging>pom</packaging>
 
   <name>${artifactId}</name>
@@ -15,6 +16,7 @@
     <module>domain</module>
     <module>application</module>
     <module>adapters/inbound-rest</module>
+    <module>adapters/inbound-kafka</module>
     <module>adapters/outbound-jpa</module>
     <module>webapp</module>
     <module>client</module>
@@ -24,15 +26,21 @@
     <revision>${version}</revision>
     <java.version>${javaVersion}</java.version>
     <spring-boot.version>${springBootVersion}</spring-boot.version>
+    <spring-cloud.version>${springCloudVersion}</spring-cloud.version>
+    <springdoc-openapi.version>3.0.3</springdoc-openapi.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
+    <maven.resources.plugin.version>3.4.0</maven.resources.plugin.version>
     <maven.surefire.plugin.version>3.5.4</maven.surefire.plugin.version>
     <maven.failsafe.plugin.version>3.5.4</maven.failsafe.plugin.version>
     <maven.enforcer.plugin.version>3.6.2</maven.enforcer.plugin.version>
+    <frontend.maven.plugin.version>1.15.4</frontend.maven.plugin.version>
     <jacoco.plugin.version>0.8.13</jacoco.plugin.version>
     <flatten.plugin.version>1.7.3</flatten.plugin.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
+    <node.version>v24.11.1</node.version>
   </properties>
 
   <dependencyManagement>
@@ -40,7 +48,28 @@
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>${symbol_dollar}{spring-boot.version}</version>
+        <version>${d}{spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${d}{spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${d}{testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-bom</artifactId>
+        <version>${d}{springdoc-openapi.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -52,10 +81,16 @@
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${d}{maven.resources.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${symbol_dollar}{maven.compiler.plugin.version}</version>
+          <version>${d}{maven.compiler.plugin.version}</version>
           <configuration>
-            <release>${symbol_dollar}{java.version}</release>
+            <release>${d}{java.version}</release>
             <parameters>true</parameters>
           </configuration>
         </plugin>
@@ -63,7 +98,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${symbol_dollar}{maven.surefire.plugin.version}</version>
+          <version>${d}{maven.surefire.plugin.version}</version>
           <configuration>
             <useModulePath>false</useModulePath>
             <includes>
@@ -75,7 +110,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${symbol_dollar}{maven.failsafe.plugin.version}</version>
+          <version>${d}{maven.failsafe.plugin.version}</version>
           <executions>
             <execution>
               <id>integration-tests</id>
@@ -95,7 +130,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${symbol_dollar}{jacoco.plugin.version}</version>
+          <version>${d}{jacoco.plugin.version}</version>
           <executions>
             <execution>
               <id>prepare-agent</id>
@@ -116,7 +151,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>${symbol_dollar}{maven.enforcer.plugin.version}</version>
+          <version>${d}{maven.enforcer.plugin.version}</version>
           <executions>
             <execution>
               <id>enforce-versions</id>
@@ -126,7 +161,7 @@
               <configuration>
                 <rules>
                   <requireMavenVersion>
-                    <version>[4.0.0,)</version>
+                    <version>[3.9.15,)</version>
                   </requireMavenVersion>
                   <requireJavaVersion>
                     <version>[25,)</version>
@@ -140,7 +175,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>flatten-maven-plugin</artifactId>
-          <version>${symbol_dollar}{flatten.plugin.version}</version>
+          <version>${d}{flatten.plugin.version}</version>
           <configuration>
             <updatePomFile>true</updatePomFile>
             <flattenMode>resolveCiFriendliesOnly</flattenMode>
@@ -161,6 +196,18 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>com.github.eirslett</groupId>
+          <artifactId>frontend-maven-plugin</artifactId>
+          <version>${d}{frontend.maven.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <version>${d}{spring-boot.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>

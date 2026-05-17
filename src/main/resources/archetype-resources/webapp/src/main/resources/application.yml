@@ -1,14 +1,52 @@
+#set($d = '$')
 spring:
+  application:
+    name: ${rootArtifactId}
+  profiles:
+    active: ${d}{SPRING_PROFILES_ACTIVE:local}
+  config:
+    import: ${d}{SPRING_CONFIG_IMPORT:optional:configserver:${d}{CONFIG_SERVER_URL:http://config-server.config-system.svc.cluster.local:8888}}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${d}{ZITADEL_ISSUER_URI:https://auth.appx-labs.com}
   datasource:
     url: jdbc:h2:mem:hexdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password: sa
+  kafka:
+    consumer:
+      group-id: ${rootArtifactId}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "${package}.adapters.inbound.kafka.message"
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+customer:
+  registration:
+    topic: customer-registration-commands
+    kafka:
+      enabled: false
+springdoc:
+  swagger-ui:
+    oauth:
+      client-id: ${d}{SWAGGER_UI_OAUTH_CLIENT_ID:replace-me}
+      use-pkce-with-authorization-code-grant: true
+      scopes: openid,profile,email
+  oauth2:
+    authorization-url: ${d}{ZITADEL_AUTHORIZATION_URL:https://auth.appx-labs.com/oauth/v2/authorize}
+    token-url: ${d}{ZITADEL_TOKEN_URL:https://auth.appx-labs.com/oauth/v2/token}
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

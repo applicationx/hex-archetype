@@ -1,3 +1,4 @@
+#set($d = '$')
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -5,29 +6,34 @@
 
   <parent>
     <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}</artifactId>
-    <version>${symbol_dollar}{revision}</version>
+    <artifactId>${rootArtifactId}</artifactId>
+    <version>${d}{revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>${artifactId}-webapp</artifactId>
+  <artifactId>${rootArtifactId}-webapp</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${groupId}</groupId>
-      <artifactId>${artifactId}-application</artifactId>
-      <version>${symbol_dollar}{project.version}</version>
+      <artifactId>${rootArtifactId}-application</artifactId>
+      <version>${d}{project.version}</version>
     </dependency>
     <dependency>
       <groupId>${groupId}</groupId>
-      <artifactId>${artifactId}-adapter-inbound-rest</artifactId>
-      <version>${symbol_dollar}{project.version}</version>
+      <artifactId>${rootArtifactId}-adapter-inbound-rest</artifactId>
+      <version>${d}{project.version}</version>
     </dependency>
     <dependency>
       <groupId>${groupId}</groupId>
-      <artifactId>${artifactId}-adapter-outbound-jpa</artifactId>
-      <version>${symbol_dollar}{project.version}</version>
+      <artifactId>${rootArtifactId}-adapter-inbound-kafka</artifactId>
+      <version>${d}{project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${groupId}</groupId>
+      <artifactId>${rootArtifactId}-adapter-outbound-jpa</artifactId>
+      <version>${d}{project.version}</version>
     </dependency>
 
     <dependency>
@@ -46,9 +52,25 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-config</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -60,18 +82,81 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <version>${d}{testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
+      <version>${d}{testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <configuration>
+          <workingDirectory>src/main/frontend</workingDirectory>
+          <installDirectory>${d}{project.build.directory}/frontend</installDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>install node and npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <configuration>
+              <nodeVersion>${d}{node.version}</nodeVersion>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm build</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>run build</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-frontend-assets</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${d}{project.build.outputDirectory}/static</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${d}{project.basedir}/src/main/frontend/dist</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
@@ -80,6 +165,9 @@
             <goals>
               <goal>repackage</goal>
             </goals>
+            <configuration>
+              <classifier>exec</classifier>
+            </configuration>
           </execution>
         </executions>
       </plugin>
